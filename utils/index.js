@@ -51,25 +51,25 @@ exports.upload = (folderName) => {
     })
 }
 
-exports.sendNotificationToAll = ({ body, fcmTokens }) => {
-    const serverKey = process.env.FIREBASE_SERVER_KEY;
-    const fcm = new FCM(serverKey);
-    const title = process.env.APP_NAME;
+// exports.sendNotificationToAll = ({ body, fcmTokens }) => {
+//     const serverKey = process.env.FIREBASE_SERVER_KEY;
+//     const fcm = new FCM(serverKey);
+//     const title = process.env.APP_NAME;
 
-    const message = {
-        // the registration tokens of the devices you want to send the message to
-        registration_ids: [...fcmTokens],
-        notification: { title, body },
-    };
+//     const message = {
+//         // the registration tokens of the devices you want to send the message to
+//         registration_ids: [...fcmTokens],
+//         notification: { title, body },
+//     };
 
-    fcm.send(message, function (err, response) {
-        if (err) {
-            console.log("FCM - Something has gone wrong!");
-        } else {
-            console.log("Successfully sent with response: ", response);
-        }
-    });
-}
+//     fcm.send(message, function (err, response) {
+//         if (err) {
+//             console.log("FCM - Something has gone wrong!");
+//         } else {
+//             console.log("Successfully sent with response: ", response);
+//         }
+//     });
+// }
 
 // pagination with mongoose paginate library
 exports.getMongoosePaginatedData = async ({
@@ -120,29 +120,29 @@ exports.getMongooseAggregatePaginatedData = async ({
     return { data, pagination };
 }
 
-exports.sendNotification = ({ title, body, fcmToken, data, priority = 'normal' }) => {
-    const serverKey = process.env.FIREBASE_SERVER_KEY;
-    const fcm = new FCM(serverKey);
+// exports.sendNotification = ({ title, body, fcmToken, data, priority = 'normal' }) => {
+//     const serverKey = process.env.FIREBASE_SERVER_KEY;
+//     const fcm = new FCM(serverKey);
 
-    const message = {
-        to: fcmToken,
-        priority,
-        notification: {
-            title,
-            body,
-        },
-        data
-    };
+//     const message = {
+//         to: fcmToken,
+//         priority,
+//         notification: {
+//             title,
+//             body,
+//         },
+//         data
+//     };
 
-    // Send the notification
-    fcm.send(message, (error, response) => {
-        if (error) {
-            console.error('Error sending notification:', error);
-        } else {
-            console.log('Notification sent successfully:', response);
-        }
-    });
-}
+//     // Send the notification
+//     fcm.send(message, (error, response) => {
+//         if (error) {
+//             console.error('Error sending notification:', error);
+//         } else {
+//             console.log('Notification sent successfully:', response);
+//         }
+//     });
+// }
 
 exports.formatDate = (date) => moment(date).format('DD-MM-YYYY');
 
