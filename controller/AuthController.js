@@ -4,7 +4,7 @@ const {findUser,generateToken,generateRefreshToken,createUser,updateUser} = requ
 const {STATUS_CODES} = require('../utils/constants');
 const { findManyEventsByIds } = require('../models/eventTypeModel');
 const { registerUserValidation,loginUserValidation, } = require('../validation/authValidation');
-
+const  saltRounds = 10; 
 // Function to hash the password
 exports.hashPassword = async (password) => {
   const saltRounds = 10;
@@ -13,7 +13,6 @@ exports.hashPassword = async (password) => {
 };
 
 exports.googleLogin = async (accessToken, refreshToken, profile, done) => {
-  console.log("i am working")
   const { id, displayName, emails, photos } = profile;
   const photo = photos[0].value;
   try {
@@ -47,6 +46,54 @@ exports.googleCallback =async (req, res,next) => {
       const updatedUser = await updateUser({_id:user._id},{refreshToken})
       //Return the token and the user object
     return generateResponse({token,user:updatedUser}, 'signed in by google', res);
+  }catch(error){
+    next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: error.message
+    })
+  }
+ 
+}
+
+exports.facebookLogin = async (accessToken, refreshToken, profile, done) => {
+  try {
+    let user = await findUser({ facebookId: profile.id });
+    console.log(profile)
+    const { id, emails, photos,name } = profile;
+    const photo = photos[0].value;
+    const email = emails[0].value;
+    const{givenName,familyName}= name;
+    if (!user) {
+      user = await createUser({
+        facebookId: id,
+        firstName: givenName,
+        lastName: familyName,
+        email,
+        image: photo,
+
+        // ... other profile information ...
+      });
+    }
+    done(null, user);
+  } catch (error) {
+    done(error, false);
+  }
+};
+
+exports.facebookCallback =async (req, res,next) => { 
+  try{
+    const user= req.user
+    console.log('callback working')
+    console.log(user)
+    const token = generateToken(user);
+      const refreshToken =  generateRefreshToken(user);
+      // Add the token to the response
+      res.setHeader('authorization', token);
+      //add the refresh token to the user
+      user.refreshToken = refreshToken;
+      const updatedUser = await updateUser({_id:user._id},{refreshToken})
+      //Return the token and the user object
+      return generateResponse({accessToken:token,user:updatedUser}, 'signed in by FACEBOOK', res);
   }catch(error){
     next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
@@ -110,9 +157,30 @@ exports.loginUser = async (req,res,next) => {
     });
   }
 };
+
+exports.createProfile = async(req,res,next)=>{
+  try{
+    const body = parseBody(req.body);
+  const {preferredEvents,firstName,lastName,dob,image,location}= body;
+  const {error} = updateProfileValidation.validate(body);
+  if(error) return next(
+    { statusCode: STATUS_CODES.BAD_REQUEST,
+       message: error.message 
+    });
+  const user = req.user;
+  const eventsIds = await findManyEventsByIds(preferredEvents)
+  const updatedUser = await updateUser({_id:user._id},{ preferredEvents:eventsIds,firstName,lastName,dob,image,location})
+  return generateResponse(updatedUser, 'Profile created', res);
+  }catch(error){
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: error.message
+    })
+  }
+}
 exports.registerUser = async (req, res,next) => {
   const body = parseBody(req.body);
-  const { email, password,preferredEvents,firstName,lastName,dob } = body;
+  const { email, password } = body;
   // implement the logic of joi validation
   const {error} = registerUserValidation.validate(body); 
   if(error) return next(
@@ -127,20 +195,13 @@ exports.registerUser = async (req, res,next) => {
       message: 'User already exists'
     });
   try {
-    const eventsIds = await findManyEventsByIds(preferredEvents)
-
     // Hash the password
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
    
     // Create a new user object
     const newUser = await createUser({
       email,
       password: hashedPassword,
-      preferredEvents:eventsIds,
-      dob,
-      firstName,
-      lastName,
-
     });
     // Save the new user to the database
   
@@ -156,8 +217,6 @@ exports.registerUser = async (req, res,next) => {
 
     // Return the token and the user object
     return generateResponse( { accessToken:token, user:updatedUser }, 'User signed Up', res);
-    
-
   
   } catch (error) {
     // Return an error response

@@ -3,6 +3,7 @@
 const { verify } = require('jsonwebtoken');
 const { STATUS_CODES } = require('../utils/constants');
 const { findUser } = require('../models/userModel');
+const mongoose = require('mongoose');
 
 module.exports = (roles) => {
     return (req, res, next) => {
@@ -18,15 +19,15 @@ module.exports = (roles) => {
             if (err) {
                 return next({
                     statusCode: STATUS_CODES.UNAUTHORIZED,
-                    message: 'Invalid token!'
+                    message: 'Invalid token! 1'
                 })
             }
             req.user = { ...decoded };
-
-            findUser({ _id: req.user.id }).then(user => {
+        
+            findUser({ _id: mongoose.Types.ObjectId(req.user.id) }).then(user => {
                 if (!user) return next({
                     statusCode: STATUS_CODES.UNAUTHORIZED,
-                    message: 'Invalid token!'
+                    message: 'Invalid token! 2'
                 });
 
                 if (!user.isActive) return next({
@@ -43,7 +44,7 @@ module.exports = (roles) => {
             }).catch(err => {
                 return next({
                     statusCode: STATUS_CODES.UNAUTHORIZED,
-                    message: 'Invalid token!'
+                    message: err.message
                 });
             });
         });

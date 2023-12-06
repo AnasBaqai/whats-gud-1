@@ -8,7 +8,7 @@ const { notFound, errorHandler } = require('./middlewares/errorHandling');
 const { log } = require('./middlewares/log');
 require('dotenv').config();
 const PORT = process.env.PORT;
-const {googleLogin} = require('./controller/AuthController');
+const {googleLogin,facebookLogin} = require('./controller/AuthController');
 const passport = require('passport');
 const session = require('express-session');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
@@ -64,6 +64,16 @@ passport.use(new GoogleStrategy({
     callbackURL: "https://whatsgud.cyclic.app/api/auth/google/callback"
   },
   googleLogin // Your callback function
+));
+
+// Facebook Strategy
+passport.use(new FacebookStrategy({
+  clientID: process.env.FACEBOOK_APP_ID,
+  clientSecret: process.env.FACEBOOK_APP_SECRET,
+  callbackURL: "http://localhost:5000/api/auth/facebook/callback",
+  profileFields: ['id', 'emails', 'name','photos']
+},
+facebookLogin // Your callback function
 ));
 
 

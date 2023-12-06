@@ -1,6 +1,7 @@
 'use strict';
 
 const { Schema, model } = require('mongoose');
+const mongoose = require('mongoose');
 const { sign } = require('jsonwebtoken');
 const { ROLES } = require('../utils/constants');
 const mongoosePaginate = require('mongoose-paginate-v2');
@@ -8,16 +9,23 @@ const aggregatePaginate = require("mongoose-aggregate-paginate-v2");
 const { getMongooseAggregatePaginatedData } = require("../utils");
 
 const userSchema = new Schema({
-    firstName: { type: String, required: true },
+    firstName: { type: String, default: null },
     lastName: { type: String, default: null },
     dob: { type: Date, },
     email: { type: String, unique: true, required: true, lowercase: true },
     password: { type: String},
     location: {
-        type: { type: String, enum: ["Point"], default: "Point" },
-        coordinates: { type: [Number], index: '2dsphere' },
-    },
-    image: { type: String },
+        type: {
+          type: String,
+          enum: ['Point'], // Restrict type to 'Point'
+          default: 'Point',
+        },
+        coordinates: {
+          type: [Number],
+          default: [0, 0], // Default coordinates if not provided
+        },
+      },
+    image: { type: String,default:null },
     role: { type: String, default: 'user', enum: Object.values(ROLES) },
     preferredEvents: [{ type: Schema.Types.ObjectId, ref: 'EventType' }],
     isActive: { type: Boolean, default: true },
@@ -33,6 +41,7 @@ userSchema.plugin(mongoosePaginate);
 userSchema.plugin(aggregatePaginate);
 
 const UserModel = model('User', userSchema);
+
 
 // create new user
 exports.createUser = (obj) => UserModel.create(obj);
