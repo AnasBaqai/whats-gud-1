@@ -1,6 +1,6 @@
 
 // Import necessary modules
-const {createEvent} = require('../models/eventTypeModel');
+const {createEvent,getAllEvents} = require('../models/eventTypeModel');
 const { parseBody, generateResponse } = require('../utils');
 const { STATUS_CODES } = require('../utils/constants');
 // Function to create a new event
@@ -22,3 +22,21 @@ const { STATUS_CODES } = require('../utils/constants');
   })
 }
 }
+
+
+exports.getAllEventsController = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    
+    const skip = (page - 1) * limit;
+  const pipeline = [
+    { $match: {} },
+  ];
+    const result = await getAllEvents({ query: pipeline, page, limit });
+    res.json(result);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+

@@ -1,8 +1,8 @@
 'use strict';
 
 const { Router } = require('express')
-const {createEvent} = require('../controller/eventTypeController');
-class eventAPI {
+const {createEvent,getAllEventsController} = require('../controller/eventTypeController');
+class eventTypeAPI {
     constructor() {
         this.router = Router();
         this.setupRoutes();
@@ -11,6 +11,7 @@ class eventAPI {
     setupRoutes() {
         let router = this.router;
        router.post('/create', createEvent);
+       router.get('/all', getAllEventsController);
     }
 
     getRouter() {
@@ -22,4 +23,4 @@ class eventAPI {
     }
 }
 
-module.exports = eventAPI;
+module.exports = eventTypeAPI;
