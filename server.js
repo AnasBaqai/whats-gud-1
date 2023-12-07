@@ -70,7 +70,7 @@ passport.use(new GoogleStrategy({
 passport.use(new FacebookStrategy({
   clientID: process.env.FACEBOOK_APP_ID,
   clientSecret: process.env.FACEBOOK_APP_SECRET,
-  callbackURL: "http://localhost:5000/api/auth/facebook/callback",
+  callbackURL: "https://whatsgud.cyclic.app/api/auth/facebook/callback",
   profileFields: ['id', 'emails', 'name','photos']
 },
 facebookLogin // Your callback function
