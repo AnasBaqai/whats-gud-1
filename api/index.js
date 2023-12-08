@@ -6,6 +6,7 @@ const rootApi = require('./rootApi')
 const authApi = require('./AuthApi')
 const eventTypeApi = require('./eventApi')
 const userApi = require('./userApi')
+const resetTokenApi = require('./resetTokenApi')
 // all API routing files import here like above
 
 
@@ -21,6 +22,7 @@ class API {
         this.routeGroups.push(new authApi());
         this.routeGroups.push(new eventTypeApi());
         this.routeGroups.push(new userApi());
+        this.routeGroups.push(new resetTokenApi());
         // all routes register here like above
     }
 
