@@ -5,6 +5,16 @@ const fs = require('fs');
 // const FCM = require('fcm-node');
 const { STATUS_CODES } = require('./constants');
 const moment = require('moment');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // Use your email service provider
+  auth: {
+    user: 'anasbaqai9@gmail.com',
+    pass: 'snhq uavi zrht ofkg'
+  }
+});
 
 exports.generateResponse = (data, message, res, code = 200) => {
     return res.status(code).json({
@@ -23,6 +33,27 @@ exports.parseBody = (body) => {
 exports.generateRandomOTP = () => {
     return Math.floor(100000 + Math.random() * 900000);
 }
+
+exports.generateResetToken = () => {
+    return crypto.randomBytes(20).toString('hex');
+  };
+
+exports.sendResetEmail = async (email, token,userId) => {
+    const resetUrl = `http://localhost:5000/api/reset/token/verify?token=${token}&userId=${userId}`;
+  
+    const mailOptions = {
+      to: email,
+      from: 'anasbaqai9@gmail.com',
+      subject: 'Password Reset',
+      text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
+        `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
+        `${resetUrl}\n\n` +
+        `If you did not request this, please ignore this email and your password will remain unchanged.\n`
+    };
+  
+    await transporter.sendMail(mailOptions);
+  };
+  
 
 exports.upload = (folderName) => {
     return multer({

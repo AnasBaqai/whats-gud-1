@@ -4,13 +4,8 @@ const {findUser,generateToken,generateRefreshToken,createUser,updateUser} = requ
 const {STATUS_CODES} = require('../utils/constants');
 const { findManyEventsByIds } = require('../models/eventTypeModel');
 const { registerUserValidation,loginUserValidation, } = require('../validation/authValidation');
-const  saltRounds = 10; 
-// Function to hash the password
-exports.hashPassword = async (password) => {
-  const saltRounds = 10;
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
-  return hashedPassword;
-};
+const  saltRounds = process.env.SALT_ROUNDS; 
+
 
 exports.googleLogin = async (accessToken, refreshToken, profile, done) => {
   const { id, displayName, emails, photos } = profile;
