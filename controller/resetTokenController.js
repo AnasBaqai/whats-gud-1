@@ -1,34 +1,33 @@
-const bcrypt = require('bcrypt');
-const {createPasswordResetToken,findPasswordResetToken,deletePasswordResetToken} = require('../models/resetTokenModel'); // Path to your PasswordReset model
-const { generateResetToken,parseBody, generateResponse } = require('../utils');
-const { STATUS_CODES } = require('../utils/constants');
-const {findUser} = require('../models/userModel');
-const {sendResetEmail} = require('../utils');
-const {resetPasswordValidation} = require('../validation/userValidation');
-const  saltRounds = process.env.SALT_ROUNDS; 
-
+const bcrypt = require("bcrypt");
+const {
+  createPasswordResetToken,
+  findPasswordResetToken,
+  deletePasswordResetToken,
+} = require("../models/resetTokenModel"); // Path to your PasswordReset model
+const { generateResetToken, parseBody, generateResponse } = require("../utils");
+const { STATUS_CODES } = require("../utils/constants");
+const { findUser } = require("../models/userModel");
+const { sendResetEmail } = require("../utils");
+const { resetPasswordValidation } = require("../validation/userValidation");
+const saltRounds = parseInt(process.env.SALT_ROUNDS);
 
 const providePasswordResetToken = async (userId) => {
-  
   const token = generateResetToken();
   const expires = new Date(Date.now() + 3600000); // 1 hour from now
-  const tokenGranted = await findPasswordResetToken({user:userId});
-  if(tokenGranted){
-    await deletePasswordResetToken({user:userId})
+  const tokenGranted = await findPasswordResetToken({ user: userId });
+  if (tokenGranted) {
+    await deletePasswordResetToken({ user: userId });
   }
 
   const passwordReset = await createPasswordResetToken({
     user: userId,
     token: token,
-    expires: expires
+    expires: expires,
   });
-  
 
   return token;
-    
-
 };
-exports.mailToken =  async (req, res,next) => {
+exports.mailToken = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await findUser({ email });
@@ -36,90 +35,97 @@ exports.mailToken =  async (req, res,next) => {
     if (!user) {
       return next({
         statusCode: STATUS_CODES.NOT_FOUND,
-        message: 'User not found.'
+        message: "User not found.",
       });
     }
 
     const token = await providePasswordResetToken(user._id);
-    await sendResetEmail(email, token,user._id); // sendResetEmail needs to be implemented
+    await sendResetEmail(email, token, user._id); // sendResetEmail needs to be implemented
 
-    return generateResponse(null, 'Password reset email sent.', res);
+    return generateResponse(null, "Password reset email sent.", res);
   } catch (error) {
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message
+      message: error.message,
     });
   }
 };
 
-exports.verifyToken = async (req, res,next) => {
-  try{
-    const { token,userId } = req.query;
+exports.verifyToken = async (req, res, next) => {
+  try {
+    const { token, userId } = req.query;
     const passwordReset = await findPasswordResetToken({
       user: userId,
       token: token,
-      expires: { $gt: Date.now() }
-    })
-  
+      expires: { $gt: Date.now() },
+    });
+
     if (!passwordReset) {
       return next({
         statusCode: STATUS_CODES.NOT_FOUND,
-        message: 'Invalid or expired password reset token.'
+        message: "Invalid or expired password reset token.",
       });
     }
-    if(passwordReset.isVerified){
+    if (passwordReset.isVerified) {
       return next({
         statusCode: STATUS_CODES.BAD_REQUEST,
-        message: 'the link has been used.'
+        message: "the link has been used.",
       });
     }
     passwordReset.isVerified = true;
     await passwordReset.save();
-    return generateResponse({ verified: true, userId: passwordReset.userId }, 'Password reset token verified.', res);
-  }catch(error){
+    return generateResponse(
+      { verified: true, userId: passwordReset.userId },
+      "Password reset token verified.",
+      res
+    );
+  } catch (error) {
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message
+      message: error.message,
     });
   }
- 
+};
 
-}
-
-exports.resetPassword = async (req, res,next) => {
-  try{
+exports.resetPassword = async (req, res, next) => {
+  try {
     const body = parseBody(req.body);
-    const { password,email } = body;
+    const { password, email } = body;
     const user = await findUser({ email });
 
     const passwordReset = await findPasswordResetToken({
       user: user._id,
-      isVerified:true
-    })
-  
-    if (!passwordReset) {
+    });
+
+    if (!passwordReset.isVerified) {
       return next({
         statusCode: STATUS_CODES.NOT_FOUND,
-        message: 'Invalid or expired reset token.'
+        message: "please verify from link first.",
       });
     }
-    const {error} = resetPasswordValidation.validate({password,confirmPassword:password});
-    if(error) return next(
-      { statusCode: STATUS_CODES.BAD_REQUEST,
-         message: error.message 
+    const { error } = resetPasswordValidation.validate({
+      password,
+      confirmPassword: password,
+    });
+    if (error)
+      return next({
+        statusCode: STATUS_CODES.BAD_REQUEST,
+        message: error.message,
       });
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     user.password = hashedPassword;
+    
     await user.save();
-    await deletePasswordResetToken({user:user._id});
-    return generateResponse({success:true}, 'Password has been reset successfully', res);
-  }catch(error){
+    await deletePasswordResetToken({ user: user._id });
+    return generateResponse(
+      { success: true },
+      "Password has been reset successfully",
+      res
+    );
+  } catch (error) {
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message
+      message: error.message,
     });
   }
- 
-
-}
-
+};

@@ -1,27 +1,26 @@
-const {Schema,model} = require('mongoose');
+const { Schema, model } = require("mongoose");
 
 const passwordResetSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     required: true,
-    ref: 'User'
+    ref: "User",
   },
   token: {
     type: String,
-    required: true
+    required: true,
   },
   expires: {
     type: Date,
-    required: true
+    required: true,
   },
   isVerified: {
     type: Boolean,
-    default: false
-  }
-
+    default: false,
+  },
 });
 
-const PasswordReset = model('PasswordReset', passwordResetSchema);
+const PasswordReset = model("PasswordReset", passwordResetSchema);
 
 // create new password reset token
 exports.createPasswordResetToken = (obj) => PasswordReset.create(obj);
@@ -30,4 +29,5 @@ exports.createPasswordResetToken = (obj) => PasswordReset.create(obj);
 exports.findPasswordResetToken = (query) => PasswordReset.findOne(query);
 
 // delete password reset token
-exports.deletePasswordResetToken = (query) => PasswordReset.findOneAndDelete(query);
+exports.deletePasswordResetToken = (query) =>
+  PasswordReset.findOneAndDelete(query);
