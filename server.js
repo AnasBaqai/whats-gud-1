@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const cors = require('cors');
 const API = require('./api');
 const http = require("http");
@@ -6,7 +7,7 @@ const DB_CONNECT = require('./config/dbConnect');
 const cookieSession = require('cookie-session');
 const { notFound, errorHandler } = require('./middlewares/errorHandling');
 const { log } = require('./middlewares/log');
-require('dotenv').config();
+
 const PORT = process.env.PORT;
 const {googleLogin,facebookLogin} = require('./controller/AuthController');
 const passport = require('passport');

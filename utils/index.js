@@ -1,86 +1,90 @@
-'use strict';
+"use strict";
 
-const multer = require('multer');
-const fs = require('fs');
+const multer = require("multer");
+const fs = require("fs");
 // const FCM = require('fcm-node');
-const { STATUS_CODES } = require('./constants');
-const moment = require('moment');
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { STATUS_CODES } = require("./constants");
+const moment = require("moment");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // Use your email service provider
+  service: "gmail", // Use your email service provider
   auth: {
-    user: 'anasbaqai9@gmail.com',
-    pass: 'snhq uavi zrht ofkg'
-  }
+    user:process.env.GMAIL_USER,
+    pass:process.env.GMAIL_PASS,
+  },
 });
 
 exports.generateResponse = (data, message, res, code = 200) => {
-    return res.status(code).json({
-        message,
-        data,
-    });
-}
+  return res.status(code).json({
+    message,
+    data,
+  });
+};
 
 exports.parseBody = (body) => {
-    let obj;
-    if (typeof body === "object") obj = body;
-    else obj = JSON.parse(body);
-    return obj;
-}
+  let obj;
+  if (typeof body === "object") obj = body;
+  else obj = JSON.parse(body);
+  return obj;
+};
 
 exports.generateRandomOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000);
-}
+  return Math.floor(100000 + Math.random() * 900000);
+};
 
 exports.generateResetToken = () => {
-    return crypto.randomBytes(20).toString('hex');
+  return crypto.randomBytes(20).toString("hex");
+};
+
+exports.sendResetEmail = async (email, token, userId) => {
+  const resetUrl = `https://whatsgud.cyclic.app/api/reset/token/verify?token=${token}&userId=${userId}`;
+ 
+  const mailOptions = {
+    to: email,
+    from:process.env.GMAIL_USER,
+    subject: "Password Reset",
+    text:
+      `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
+      `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
+      `${resetUrl}\n\n` +
+      `If you did not request this, please ignore this email and your password will remain unchanged.\n`,
   };
 
-exports.sendResetEmail = async (email, token,userId) => {
-    const resetUrl = `http://localhost:5000/api/reset/token/verify?token=${token}&userId=${userId}`;
-  
-    const mailOptions = {
-      to: email,
-      from: 'anasbaqai9@gmail.com',
-      subject: 'Password Reset',
-      text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
-        `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
-        `${resetUrl}\n\n` +
-        `If you did not request this, please ignore this email and your password will remain unchanged.\n`
-    };
-  
-    await transporter.sendMail(mailOptions);
-  };
-  
+  await transporter.sendMail(mailOptions);
+};
 
 exports.upload = (folderName) => {
-    return multer({
-        storage: multer.diskStorage({
-            destination: function (req, file, cb) {
-                const path = `uploads/${folderName}/`;
-                fs.mkdirSync(path, { recursive: true })
-                cb(null, path);
-            },
+  return multer({
+    storage: multer.diskStorage({
+      destination: function (req, file, cb) {
+        const path = `uploads/${folderName}/`;
+        fs.mkdirSync(path, { recursive: true });
+        cb(null, path);
+      },
 
-            // By default, multer removes file extensions so let's add them back
-            filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                cb(null, uniqueSuffix + '.' + file.originalname.split('.').pop());
-            }
-        }),
-        limits: { fileSize: 10 * 1024 * 1024 },  // max 10MB //
-        fileFilter: (req, file, cb) => {
-            // check mime type
-            if (!file.mimetype.match(/image\/(jpg|JPG|webp|jpeg|JPEG|png|PNG|gif|GIF|jfif|JFIF)/)) {
-                req.fileValidationError = 'Only image files are allowed!';
-                return cb(null, false);
-            }
-            cb(null, true);
-        }
-    })
-}
+      // By default, multer removes file extensions so let's add them back
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, uniqueSuffix + "." + file.originalname.split(".").pop());
+      },
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 }, // max 10MB //
+    fileFilter: (req, file, cb) => {
+      // check mime type
+      if (
+        !file.mimetype.match(
+          /image\/(jpg|JPG|webp|jpeg|JPEG|png|PNG|gif|GIF|jfif|JFIF)/
+        )
+      ) {
+        req.fileValidationError = "Only image files are allowed!";
+        return cb(null, false);
+      }
+      cb(null, true);
+    },
+  });
+};
 
 // exports.sendNotificationToAll = ({ body, fcmTokens }) => {
 //     const serverKey = process.env.FIREBASE_SERVER_KEY;
@@ -104,52 +108,67 @@ exports.upload = (folderName) => {
 
 // pagination with mongoose paginate library
 exports.getMongoosePaginatedData = async ({
-    model, page = 1, limit = 10, query = {}, populate = '', select = '-password', sort = { createdAt: -1 },
+  model,
+  page = 1,
+  limit = 10,
+  query = {},
+  populate = "",
+  select = "-password",
+  sort = { createdAt: -1 },
 }) => {
-    const options = {
-        select,
-        sort,
-        populate,
-        lean: true,
-        page,
-        limit,
-        customLabels: {
-            totalDocs: 'totalItems',
-            docs: 'data',
-            limit: 'perPage',
-            page: 'currentPage',
-            meta: 'pagination',
-        },
-    };
+  const options = {
+    select,
+    sort,
+    populate,
+    lean: true,
+    page,
+    limit,
+    customLabels: {
+      totalDocs: "totalItems",
+      docs: "data",
+      limit: "perPage",
+      page: "currentPage",
+      meta: "pagination",
+    },
+  };
 
-    const { data, pagination } = await model.paginate(query, options);
-    return { data, pagination };
-}
+  const { data, pagination } = await model.paginate(query, options);
+  return { data, pagination };
+};
 
 // aggregate pagination with mongoose paginate library
 exports.getMongooseAggregatePaginatedData = async ({
-    model, page = 1, limit = 10, query = [], populate = '', select = '-password', sort = { createdAt: -1 },
+  model,
+  page = 1,
+  limit = 10,
+  query = [],
+  populate = "",
+  select = "-password",
+  sort = { createdAt: -1 },
 }) => {
-    const options = {
-        select,
-        sort,
-        populate,
-        lean: true,
-        page,
-        limit,
-        customLabels: {
-            totalDocs: 'totalItems',
-            docs: 'data',
-            limit: 'perPage',
-            page: 'currentPage',
-            meta: 'pagination',
-        },
-    };
+  const options = {
+    select,
+    sort,
+    populate,
+    lean: true,
+    page,
+    limit,
+    customLabels: {
+      totalDocs: "totalItems",
+      docs: "data",
+      limit: "perPage",
+      page: "currentPage",
+      meta: "pagination",
+    },
+  };
 
-    const myAggregate = model.aggregate(query);
-    const { data, pagination } = await model.aggregatePaginate(myAggregate, options);
-    return { data, pagination };
-}
+  const myAggregate = model.aggregate(query);
+  const { data, pagination } = await model.aggregatePaginate(
+    myAggregate,
+    options
+  );
+  return { data, pagination };
+};
 
 // exports.sendNotification = ({ title, body, fcmToken, data, priority = 'normal' }) => {
 //     const serverKey = process.env.FIREBASE_SERVER_KEY;
@@ -175,8 +194,8 @@ exports.getMongooseAggregatePaginatedData = async ({
 //     });
 // }
 
-exports.formatDate = (date) => moment(date).format('DD-MM-YYYY');
+exports.formatDate = (date) => moment(date).format("DD-MM-YYYY");
 
-exports.formatTime = (date) => moment(date).format('HH:mm:ss');
+exports.formatTime = (date) => moment(date).format("HH:mm:ss");
 
-exports.formatDateTime = (date) => moment(date).format('DD-MM-YYYY HH:mm:ss');
+exports.formatDateTime = (date) => moment(date).format("DD-MM-YYYY HH:mm:ss");
