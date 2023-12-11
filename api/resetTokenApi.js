@@ -1,7 +1,7 @@
 'use strict';
 
 const { Router } = require('express')
-const {mailToken,verifyToken,resetPassword} = require('../controller/resetTokenController');
+const {mailToken,verifyToken,resetPassword,verifyconfirmation} = require('../controller/resetTokenController');
 class resetTokenAPI {
     constructor() {
         this.router = Router();
@@ -12,6 +12,7 @@ class resetTokenAPI {
        let router = this.router;
        router.post('/mail', mailToken);
        router.get('/verify', verifyToken);
+       router.post('/confirmation', verifyconfirmation);
        router.patch('/password', resetPassword);
        
     }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Reset Verification index</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body,
+      html {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        background: linear-gradient(135deg, #665ee0 0%, #000000 100%);
+        color: white;
+        font-family: "Arial", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo {
+        max-width: 20%;
+        margin-bottom: 2rem;
+      }
+
+      .text-purple {
+        color: #665ee0;
+      }
+
+      .btn-purple {
+        background-color: #665ee0;
+        color: white;
+        border: none;
+      }
+
+      .btn-purple:hover {
+        background-color: #564bd8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div
+        class="row justify-content-center align-items-center"
+        style="height: 100vh"
+      >
+        <div class="col-12 col-md-8 col-lg-6 text-center">
+          <img src="/logo.png" alt="WATZGUD Logo" class="img-fluid logo" />
+          <h1 class="text-purple"><%= mainMessage %></h1>
+          <p class="text-light"><%= message %></p>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

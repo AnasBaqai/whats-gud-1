@@ -61,28 +61,70 @@ exports.verifyToken = async (req, res, next) => {
     });
 
     if (!passwordReset) {
-      return next({
-        statusCode: STATUS_CODES.NOT_FOUND,
-        message: "Invalid or expired password reset token.",
+      return res.render("index", {
+        mainMessage: "sorry",
+        message: "invalid or expired link",
       });
+      // return next({
+      //   statusCode: STATUS_CODES.NOT_FOUND,
+      //   message: "Invalid or expired password reset token.",
+      // });
     }
     if (passwordReset.isVerified) {
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: "the link has been used.",
+      return res.render("index", {
+        mainMessage: "sorry",
+        message: "the link has already been used",
       });
+      // return next({
+      //   statusCode: STATUS_CODES.BAD_REQUEST,
+      //   message: "the link has been used.",
+      // });
     }
     passwordReset.isVerified = true;
     await passwordReset.save();
+    return res.render("index", {
+      mainMessage: "You are verified",
+      message: "you can proceed for password reset.",
+    });
+    // return generateResponse(
+    //   { verified: true, userId: passwordReset.userId },
+    //   "Password reset token verified.",
+    //   res
+    // );
+  } catch (error) {
+    console.log(error);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: error.message,
+    });
+  }
+};
+
+exports.verifyconfirmation = async (req, res, next) => {
+  try {
+    const body = parseBody(req.body);
+    const { email } = body;
+    const user = await findUser({ email });
+    const passwordReset = await findPasswordResetToken({
+      user: user._id,
+    });
+    if (!passwordReset.isVerified) {
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "please verify from link first.",
+        isVarified: false,
+      });
+    }
     return generateResponse(
       { verified: true, userId: passwordReset.userId },
       "Password reset token verified.",
       res
     );
   } catch (error) {
+    console.log(error);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };
@@ -93,16 +135,17 @@ exports.resetPassword = async (req, res, next) => {
     const { password, email } = body;
     const user = await findUser({ email });
 
-    const passwordReset = await findPasswordResetToken({
-      user: user._id,
-    });
+    // const passwordReset = await findPasswordResetToken({
+    //   user: user._id,
+    // });
 
-    if (!passwordReset.isVerified) {
-      return next({
-        statusCode: STATUS_CODES.NOT_FOUND,
-        message: "please verify from link first.",
-      });
-    }
+    // if (!passwordReset.isVerified) {
+    //   return next({
+    //     statusCode: STATUS_CODES.NOT_FOUND,
+    //     message: "please verify from link first.",
+    //     isVarified:false
+    //   });
+    // }
     const { error } = resetPasswordValidation.validate({
       password,
       confirmPassword: password,
@@ -114,7 +157,7 @@ exports.resetPassword = async (req, res, next) => {
       });
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     user.password = hashedPassword;
-    
+
     await user.save();
     await deletePasswordResetToken({ user: user._id });
     return generateResponse(
