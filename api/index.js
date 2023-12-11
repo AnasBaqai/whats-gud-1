@@ -26,16 +26,16 @@ class API {
         // all routes register here like above
     }
 
-    setContentType(req, res, next) {
-        res.set('Content-Type', 'application/json');
-        next();
-    }
+    // setContentType(req, res, next) {
+    //     res.set('Content-Type', 'application/json');
+    //     next();
+    // }
 
     registerGroups() {
         this.loadRouteGroups();
         this.routeGroups.forEach((rg) => {
             console.log('Route group: ' + rg.getRouterGroup());
-            this.app.use('/api' + rg.getRouterGroup(), this.setContentType, rg.getRouter());
+            this.app.use('/api' + rg.getRouterGroup(), rg.getRouter());
         });
     }
 }

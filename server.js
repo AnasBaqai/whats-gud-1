@@ -7,7 +7,7 @@ const DB_CONNECT = require('./config/dbConnect');
 const cookieSession = require('cookie-session');
 const { notFound, errorHandler } = require('./middlewares/errorHandling');
 const { log } = require('./middlewares/log');
-
+const path = require('path');
 const PORT = process.env.PORT;
 const {googleLogin,facebookLogin} = require('./controller/AuthController');
 const passport = require('passport');
@@ -22,6 +22,8 @@ DB_CONNECT();
 
 const server = http.createServer(app);
 // 
+// app.set('views', path.join(__dirname, 'views'));
+
 app.use(session({
     secret: 'secret', // A secret key for signing the session ID cookie
     resave: false, // Avoids resaving sessions that haven't been modified
@@ -33,7 +35,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: "30mb" }));
-app.use('/uploads', express.static('uploads'));
+// Set the view engine to ejs
+app.set('view engine', 'ejs');
+
+// Serve static files from the "public" directory
+app.use(express.static('public'));
+// app.use('/uploads', express.static('uploads'));
 
 // app.use(cookieSession({
 //     name: 'session',
