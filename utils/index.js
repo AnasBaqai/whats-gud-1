@@ -39,7 +39,7 @@ exports.generateResetToken = () => {
 };
 
 exports.sendResetEmail = async (email, token, userId) => {
-  const resetUrl = `http://localhost:5000/api/reset/token/verify?token=${token}&userId=${userId}`;
+  const resetUrl = `https://whatsgud.cyclic.app/api/reset/token/verify?token=${token}&userId=${userId}`;
  
   const mailOptions = {
     to: email,
