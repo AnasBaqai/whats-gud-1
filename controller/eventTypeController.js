@@ -15,9 +15,10 @@ exports.createEvent = async (req, res, next) => {
     const event = await createEvent(eventData);
     return generateResponse(event, "Event type created successfully", res);
   } catch (error) {
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };
@@ -31,9 +32,10 @@ exports.getAllEventsController = async (req, res,next) => {
     const result = await getAllEvents({ query: pipeline, page, limit });
     return generateResponse({eventType:result}, "Events fetched successfully", res);
   } catch (error) {
+    console.log(error.message)
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };

@@ -37,9 +37,10 @@ exports.createProfile = async (req, res, next) => {
     );
     return generateResponse(updatedUser, "Profile created", res);
   } catch (error) {
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };

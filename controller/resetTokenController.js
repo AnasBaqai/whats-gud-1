@@ -92,10 +92,10 @@ exports.verifyToken = async (req, res, next) => {
     //   res
     // );
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };
@@ -121,7 +121,7 @@ exports.verifyconfirmation = async (req, res, next) => {
       res
     );
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
@@ -166,9 +166,10 @@ exports.resetPassword = async (req, res, next) => {
       res
     );
   } catch (error) {
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };
