@@ -4,10 +4,12 @@ const { Router } = require('express');
 
 const rootApi = require('./rootApi')
 const authApi = require('./AuthApi')
-const eventTypeApi = require('./eventApi')
+const eventTypeApi = require('./eventTypeApi')
 const userApi = require('./userApi')
 const resetTokenApi = require('./resetTokenApi')
 const relationApi = require('./relationApi')
+const subEventTypeApi = require('./subEventTypeApi')
+const eventApi = require('./eventApi')
 // all API routing files import here like above
 
 
@@ -25,6 +27,8 @@ class API {
         this.routeGroups.push(new userApi());
         this.routeGroups.push(new resetTokenApi());
         this.routeGroups.push(new relationApi());
+        this.routeGroups.push(new subEventTypeApi());
+        this.routeGroups.push(new eventApi());
         // all routes register here like above
     }
 

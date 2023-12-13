@@ -3,10 +3,10 @@ const mongoosePaginate = require("mongoose-paginate-v2");
 const aggregatePaginate = require("mongoose-aggregate-paginate-v2");
 const { getMongooseAggregatePaginatedData } = require("../utils");
 const subEventTypeSchema = new Schema({
-  eventType:{
+  eventType: {
     type: Schema.Types.ObjectId,
-    ref: 'EventType',
-    required: true
+    ref: "EventType",
+    required: true,
   },
   name: {
     type: String,
@@ -23,17 +23,23 @@ const subEventTypeModel = model("subEventType", subEventTypeSchema);
 
 exports.createSubEventType = (obj) => subEventTypeModel.create(obj);
 
-exports.findSubEventTypeById = (subEventId) => subEventTypeModel.findById(subEventId);
+exports.findSubEventTypeById = (subEventId) =>
+  subEventTypeModel.findById(subEventId);
 
 exports.updateEvent = (subEventId, obj) =>
-subEventTypeModel.findByIdAndUpdate(subEventId, obj, { new: true });
+  subEventTypeModel.findByIdAndUpdate(subEventId, obj, { new: true });
 
 exports.deleteEvent = (eventId) => subEventTypeModel.findByIdAndDelete(eventId);
 // implement findManyEventsByIds function
 exports.findManyEventsByIds = (eventIds) =>
-subEventTypeModel.find({ _id: { $in: eventIds } });
+  subEventTypeModel.find({ _id: { $in: eventIds } });
 // write a function to get all events with pagination
-exports.getAllSubEventstype = async ({ query, page, limit, responseKey = "data" }) => {
+exports.getAllSubEventstype = async ({
+  query,
+  page,
+  limit,
+  responseKey = "data",
+}) => {
   const { data, pagination } = await getMongooseAggregatePaginatedData({
     model: subEventTypeModel,
     query,

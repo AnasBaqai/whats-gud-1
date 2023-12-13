@@ -18,11 +18,11 @@ const AppleStrategy = require('passport-apple');
 const MongoStore = require('connect-mongo');
 
 const app = express();
-DB_CONNECT();
+// DB_CONNECT();
 
 const server = http.createServer(app);
 // 
-// app.set('views', path.join(__dirname, 'views'));
+
 
 app.use(session({
     secret: 'secret', // A secret key for signing the session ID cookie
@@ -92,7 +92,9 @@ app.use(log);
 new API(app).registerGroups();
 app.use(notFound);
 app.use(errorHandler);
-
-server.listen(PORT, () => {
+DB_CONNECT().then(()=>{
+  server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}/`);
 });
+})
+
