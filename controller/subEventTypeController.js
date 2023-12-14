@@ -1,4 +1,5 @@
 // Import necessary modules
+const { default: mongoose } = require("mongoose");
 const { createSubEventType,getAllSubEventstype } = require("../models/subEventTypemodel");
 const { parseBody, generateResponse } = require("../utils");
 const { STATUS_CODES } = require("../utils/constants");
@@ -36,9 +37,9 @@ exports.getAllSubEventsController = async (req, res,next) => {
   try {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
-    const eventTypeId = req.query.eventTypeId;
+    const eventType = req.query.eventType;
 
-    const pipeline = [{ $match: {   eventType: eventTypeId } }];
+    const pipeline = [{ $match: {eventType:mongoose.Types.ObjectId(eventType)} }];
     const result = await getAllSubEventstype({ query: pipeline, page, limit,responseKey:'subEventsType' });
     return generateResponse(result, "Sub Events fetched successfully", res);
   } catch (error) {
