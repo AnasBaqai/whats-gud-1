@@ -4,7 +4,8 @@ const { Router } = require('express')
 const {createProfile,uploadProfileImage} = require('../controller/userController');
 const auth = require('../middlewares/Auth');
 const {ROLES} = require('../utils/constants');
-const {upload} = require('../utils/imageUpload');
+// const {upload} = require('../utils/imageUpload');
+const {upload} = require('../utils/s3Upload');
 class userAPI {
     constructor() {
         this.router = Router();

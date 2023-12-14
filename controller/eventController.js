@@ -1,18 +1,21 @@
 const {createEvent,findEvent} = require('../models/eventModel');
 const { parseBody, generateResponse } = require('../utils');
 const { STATUS_CODES } = require('../utils/constants');
+const { s3Uploadv3 } = require('../utils/s3Upload');
 const { eventValidation } = require('../validation/eventValidation');
 
 exports.createEventController = async (req,res,next) => {
   try {
     const body = req.body;
-    let coverImage = ' ';
+    let coverImages = [' '];
+    console.log(coverImages)
     if (req.file) {
-      coverImage = req.file.location;
+      coverImages = await s3Uploadv3([req.file]);
     }
+    console.log(coverImages)
     const newEvent= {
       ...body,
-      coverImage,
+      coverImage:coverImages[0],
       creator:req.user.id
     }
     const {error} = eventValidation.validate(newEvent);

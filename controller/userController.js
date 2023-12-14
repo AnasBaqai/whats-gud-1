@@ -6,6 +6,7 @@ const { updateProfileValidation } = require("../validation/userValidation");
 const { findManyEventsByIds } = require("../models/eventTypeModel");
 const mongoose = require("mongoose");
 const { deleteFileFromS3 } = require("../utils/imageUpload");
+const { s3Uploadv3, deleteImage } = require("../utils/s3Upload");
 // Function to update user profile
 exports.createProfile = async (req, res, next) => {
   try {
@@ -54,12 +55,16 @@ exports.uploadProfileImage = async (req, res, next) => {
   }
 
   // Assuming 'updateUserProfilePhoto' is a function that updates the user's photo
-  const filePath = req.file.location; // The file location on S3
+  // const filePath = req.file.location; // The file location on S3
+  const filePath = await s3Uploadv3([req.file]);
+ 
   const userId = req.user.id;
   const user = await findUser({ _id: userId });
   if (user.image) {
-    await deleteFileFromS3(user.image);
+    await deleteImage([user.image]);
   }
-  await updateUser({ _id: userId }, { image: filePath });
-  return generateResponse({ filePath }, "Profile image uploaded", res);
+  
+   await updateUser({ _id: userId }, { image: filePath[0] });
+ 
+  return generateResponse({ fileUrl:filePath[0] }, "Profile image uploaded", res);
 };
