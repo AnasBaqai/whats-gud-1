@@ -65,7 +65,6 @@ exports.s3Uploadv3 = async (files, base64 = false) => {
     await Promise.all(
       params.map((param) =>
         s3client.send(new PutObjectCommand(param)).then((v) => {
-          console.log(v);
           keys.push(param.Key);
         })
       )

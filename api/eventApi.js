@@ -1,7 +1,7 @@
 'use strict';
 
 const { Router } = require('express')
-const {createEventController} = require('../controller/eventController');
+const {createEventController,getAllEventsController} = require('../controller/eventController');
 const auth = require('../middlewares/Auth');
 const {ROLES} = require('../utils/constants');
 // const {upload} = require('../utils/imageUpload');
@@ -15,7 +15,7 @@ class eventAPI {
     setupRoutes() {
         let router = this.router;
        router.post('/create',auth([ROLES.USER,ROLES.ADMIN]),upload.single('coverImage'), createEventController);
-      //  router.get('/all', getAllEventsController);
+       router.get('/all',getAllEventsController );
     }
 
     getRouter() {

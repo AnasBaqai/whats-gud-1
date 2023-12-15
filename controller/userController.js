@@ -53,18 +53,38 @@ exports.uploadProfileImage = async (req, res, next) => {
       message: "No file uploaded",
     });
   }
+  // let fileBuffer;
+  // let isBase64 = false;
 
-  // Assuming 'updateUserProfilePhoto' is a function that updates the user's photo
-  // const filePath = req.file.location; // The file location on S3
-  const filePath = await s3Uploadv3([req.file]);
- 
+  // if (req.file) {
+  //   // Direct file upload
+  //   fileBuffer = req.file.buffer;
+  // } else if (req.body && req.body.image) {
+  //   // Base64 encoded image
+  //   isBase64 = true;
+  //   const base64Data = req.body.image
+  //   fileBuffer =base64Data
+  // } else {
+  //   return next({
+  //     statusCode: STATUS_CODES.BAD_REQUEST,
+  //     message: "No file uploaded",
+  //   });
+  // }
+
+  // Upload the file to S3
+  const filePath = await s3Uploadv3([fileBuffer]);
+
   const userId = req.user.id;
   const user = await findUser({ _id: userId });
   if (user.image) {
     await deleteImage([user.image]);
   }
-  
-   await updateUser({ _id: userId }, { image: filePath[0] });
- 
-  return generateResponse({ fileUrl:filePath[0] }, "Profile image uploaded", res);
+
+  await updateUser({ _id: userId }, { image: filePath[0] });
+
+  return generateResponse(
+    { fileUrl: filePath[0] },
+    "Profile image uploaded",
+    res
+  );
 };

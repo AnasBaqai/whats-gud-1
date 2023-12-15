@@ -16,7 +16,7 @@ exports.subEventTypeValidation = Joi.object({
 exports.eventValidation = Joi.object({
   category: Joi.object({
     main: Joi.string().required(),
-    sub: Joi.string().required()
+    sub: Joi.array().items(Joi.string()).required()
   }).required(),
   eventName: Joi.string().required(),
   artistDJ: Joi.object({
