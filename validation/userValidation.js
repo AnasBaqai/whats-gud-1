@@ -22,4 +22,5 @@ exports.updateProfileValidation = Joi.object({
         coordinates: Joi.array().items(Joi.number()).required(),
       }).required(),
       image: Joi.string().allow(null),
+      
 });

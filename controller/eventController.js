@@ -13,14 +13,13 @@ const { getAllEventsQuery } = require("./queries/eventQueries");
 exports.createEventController = async (req, res, next) => {
   try {
     const body = parseBody(req.body);
-    let coverImages = [" "];
-    if (req.file) {
-      coverImages = await s3Uploadv3([req.file]);
-    }
+    
+    // if (req.file) {
+    //   coverImages = await s3Uploadv3([req.file]);
+    // }
 
     const newEvent = {
       ...body,
-      coverImage: coverImages[0],
       creator: req.user.id,
     };
     const { error } = eventValidation.validate(newEvent);

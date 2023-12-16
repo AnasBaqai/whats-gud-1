@@ -3,16 +3,22 @@ const { STATUS_CODES } = require("../utils/constants");
 const { parseBody, generateResponse } = require("../utils");
 const { updateUser, findUser } = require("../models/userModel");
 const { updateProfileValidation } = require("../validation/userValidation");
-const { findManyEventsByIds } = require("../models/eventTypeModel");
+const { findManyEventsTypeByIds } = require("../models/eventTypeModel");
 const mongoose = require("mongoose");
-const { deleteFileFromS3 } = require("../utils/imageUpload");
 const { s3Uploadv3, deleteImage } = require("../utils/s3Upload");
 // Function to update user profile
 exports.createProfile = async (req, res, next) => {
   try {
     const body = parseBody(req.body);
-    const { preferredEvents, firstName, lastName, dob, location, gender } =
-      body;
+    const {
+      preferredEvents,
+      firstName,
+      lastName,
+      dob,
+      location,
+      gender,
+      image,
+    } = body;
     const { error } = updateProfileValidation.validate(body);
 
     // Validate and parse longitude and latitude
@@ -30,11 +36,24 @@ exports.createProfile = async (req, res, next) => {
         statusCode: STATUS_CODES.BAD_REQUEST,
         message: error.message,
       });
-    const user = req.user;
-    const eventsIds = await findManyEventsByIds(preferredEvents);
+    const userId = req.user.id;
+    const user = await findUser({ _id: mongoose.Types.ObjectId(userId) });
+    if (user.image) {
+      console.log(user.image);
+      console.log( await deleteImage([user.image]));
+    }
+    const eventsIds = await findManyEventsTypeByIds(preferredEvents);
     const updatedUser = await updateUser(
-      { _id: mongoose.Types.ObjectId(user.id) },
-      { preferredEvents: eventsIds, firstName, lastName, dob, location, gender }
+      { _id: mongoose.Types.ObjectId(userId) },
+      {
+        preferredEvents: eventsIds,
+        firstName,
+        lastName,
+        dob,
+        location,
+        gender,
+        image,
+      }
     );
     return generateResponse(updatedUser, "Profile created", res);
   } catch (error) {
@@ -53,26 +72,8 @@ exports.uploadProfileImage = async (req, res, next) => {
       message: "No file uploaded",
     });
   }
-  // let fileBuffer;
-  // let isBase64 = false;
-
-  // if (req.file) {
-  //   // Direct file upload
-  //   fileBuffer = req.file.buffer;
-  // } else if (req.body && req.body.image) {
-  //   // Base64 encoded image
-  //   isBase64 = true;
-  //   const base64Data = req.body.image
-  //   fileBuffer =base64Data
-  // } else {
-  //   return next({
-  //     statusCode: STATUS_CODES.BAD_REQUEST,
-  //     message: "No file uploaded",
-  //   });
-  // }
-
   // Upload the file to S3
-  const filePath = await s3Uploadv3([fileBuffer]);
+  const filePath = await s3Uploadv3([req.file.buffer]);
 
   const userId = req.user.id;
   const user = await findUser({ _id: userId });

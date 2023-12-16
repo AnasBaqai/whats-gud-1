@@ -63,6 +63,7 @@ const eventSchema = new Schema(
     },
     coverImage: {
       type: String, // This will hold the URL to the image
+      default: null,
       // required: true,
     },
     creator: {

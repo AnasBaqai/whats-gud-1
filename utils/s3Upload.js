@@ -5,6 +5,7 @@ const {
   S3,
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const uuid = require("uuid").v4;
 const storage = multer.memoryStorage();
 
@@ -75,6 +76,40 @@ exports.s3Uploadv3 = async (files, base64 = false) => {
   }
 };
 
+const mimeTypeToExtension = (mimeType) => {
+  const mimeMap = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "video/mp4": ".mp4",
+    // add more mappings as necessary
+  };
+  return mimeMap[mimeType] || "";
+};
+
+exports.provideSignedUrl = async (req, res) => {
+  try {
+    const mimeType = req.query.mimeType; // MIME type from the query
+    const fileExtension = mimeTypeToExtension(mimeType);
+    const key = `uploads/${uuid()}${fileExtension}`;
+    const s3client = new S3Client(config());
+    // Create a command to put an object
+    const putCommand = new PutObjectCommand({
+      Bucket: process.env.BUCKET_NAME,
+      Key: key,
+      ContentType: mimeType, // Set ContentType based on the query parameter
+      // additional settings can be provided here (like ContentType)
+    });
+
+    // Generate a pre-signed URL for putObject
+    const url = await getSignedUrl(s3client, putCommand, { expiresIn: 600 });
+
+    res.json({ key, url });
+  } catch (error) {
+    console.error("Error generating pre-signed URL", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 exports.deleteImage = async (images) => {
   try {
     if (images.length != 0 && images[0] == null) return;
@@ -86,7 +121,7 @@ exports.deleteImage = async (images) => {
         Key: file,
       };
     });
-   
+
     return await Promise.all(
       params.map((param) => s3.send(new DeleteObjectCommand(param)))
     );

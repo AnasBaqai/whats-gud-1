@@ -29,7 +29,8 @@ const providePasswordResetToken = async (userId) => {
 };
 exports.mailToken = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const body = parseBody(req.body);
+    const { email } = body;
     const user = await findUser({ email });
 
     if (!user) {

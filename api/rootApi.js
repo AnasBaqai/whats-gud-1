@@ -2,7 +2,7 @@
 
 const { Router } = require('express')
 const { DefaultHandler } = require('../controller/rootController');
-
+const {provideSignedUrl}= require('../utils/s3Upload');
 class RootAPI {
     constructor() {
         this.router = Router();
@@ -12,6 +12,7 @@ class RootAPI {
     setupRoutes() {
         let router = this.router;
         router.get('/', DefaultHandler);
+        router.get('/signedUrl',provideSignedUrl);
     }
 
     getRouter() {
