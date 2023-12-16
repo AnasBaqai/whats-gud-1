@@ -32,7 +32,30 @@ exports.getAllEventsQuery = (mainCategoryId) => {
         "category.sub": "$subCategories",
       },
     },
-
+    {
+      $lookup: {
+        from: 'tickets', // This should be the actual name of the tickets collection
+        localField: '_id', // The local field on the event document
+        foreignField: 'eventId', // The field on the ticket document
+        as: 'soldTickets' // The name for the resulting array
+      }
+    },
+    {
+      $addFields: {
+        ticketsSold: { $size: '$soldTickets' }
+      }
+    },
+    {
+      $addFields: {
+        hotnessScore: {
+          $cond: {
+            if: { $gt: ['$capacity', 0] }, // Avoid division by zero
+            then: { $multiply: [{ $divide: ['$ticketsSold', '$capacity'] }, 100] },
+            else: 0
+          }
+        }
+      }
+    },
     // Populate artistDJ if it contains the ID
     {
       $lookup: {

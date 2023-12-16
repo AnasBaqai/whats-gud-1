@@ -14,7 +14,7 @@ exports.registerUserValidation = Joi.object({
 
 exports.loginUserValidation = Joi.object({
     email: Joi.string().email().required(),
-    password: Joi.string().pattern(passwordPattern).min(8).max(30).required(),
+    password: Joi.string().min(8).max(30).required(),
     fcmToken: Joi.string(),
 });
 

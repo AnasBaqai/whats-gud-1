@@ -1,7 +1,6 @@
 "use strict";
 
 const { Schema, model } = require("mongoose");
-const mongoose = require("mongoose");
 const { sign } = require("jsonwebtoken");
 const { ROLES } = require("../utils/constants");
 const mongoosePaginate = require("mongoose-paginate-v2");
@@ -43,6 +42,7 @@ const userSchema = new Schema(
 userSchema.plugin(mongoosePaginate);
 userSchema.plugin(aggregatePaginate);
 
+userSchema.index({ "location.coordinates": "2dsphere" });
 const UserModel = model("User", userSchema);
 
 // create new user

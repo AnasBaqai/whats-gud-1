@@ -3,6 +3,11 @@ exports.ROLES = Object.freeze({
   ADMIN: "admin",
 });
 
+exports.TICKET_STATUS = Object.freeze({
+  UNUSED: "unused",
+  USED: "used",
+});
+
 exports.STATUS_CODES = Object.freeze({
   SUCCESS: 200,
   CREATED: 201,

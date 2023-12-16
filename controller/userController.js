@@ -2,7 +2,7 @@
 const { STATUS_CODES } = require("../utils/constants");
 const { parseBody, generateResponse } = require("../utils");
 const { updateUser, findUser } = require("../models/userModel");
-const { updateProfileValidation } = require("../validation/userValidation");
+const { updateProfileValidation, locationValidation } = require("../validation/userValidation");
 const { findManyEventsTypeByIds } = require("../models/eventTypeModel");
 const mongoose = require("mongoose");
 const { s3Uploadv3, deleteImage } = require("../utils/s3Upload");
@@ -88,4 +88,41 @@ exports.uploadProfileImage = async (req, res, next) => {
     "Profile image uploaded",
     res
   );
+};
+
+
+// Function to update user location 
+exports.updateLocation = async (req, res, next) => {
+  try {
+    const body = parseBody(req.body);
+    const { location } = body;
+    const { error } = locationValidation.validate(body);
+    const longitude = parseFloat(location.coordinates[0]);
+    const latitude = parseFloat(location.coordinates[1]);
+    if (isNaN(longitude) || isNaN(latitude)) {
+      return next({
+        statusCode: STATUS_CODES.BAD_REQUEST,
+        message: "Invalid longitude or latitude values.",
+      });
+    }
+    if (error)
+      return next({
+        statusCode: STATUS_CODES.BAD_REQUEST,
+        message: error.message,
+      });
+    const userId = req.user.id;
+    const updatedUser = await updateUser(
+      { _id: mongoose.Types.ObjectId(userId) },
+      {
+        location,
+      }
+    );
+    return generateResponse(updatedUser, "Location updated", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
 };

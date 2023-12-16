@@ -4,7 +4,6 @@ const { Router } = require('express')
 const {createEventController,getAllEventsController} = require('../controller/eventController');
 const auth = require('../middlewares/Auth');
 const {ROLES} = require('../utils/constants');
-// const {upload} = require('../utils/imageUpload');
 const {upload} = require('../utils/s3Upload');
 class eventAPI {
     constructor() {

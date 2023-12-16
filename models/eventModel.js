@@ -71,6 +71,7 @@ const eventSchema = new Schema(
       ref: "User",
       required: true,
     },
+    capacity: { type: Number, required: true },
     // Additional fields like 'created_at', 'updated_at', or 'isApproved' can be added as needed
   },
   { timestamps: true }
@@ -78,7 +79,7 @@ const eventSchema = new Schema(
 
 eventSchema.plugin(mongoosePaginate);
 eventSchema.plugin(aggregatePaginate);
-
+eventSchema.index({ "location.coordinates": "2dsphere" });
 const Event = model("Event", eventSchema);
 
 // create new event
