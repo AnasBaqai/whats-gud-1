@@ -8,6 +8,7 @@ const {
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
 const { upload } = require("../utils/imageUpload");
+
 class subEventTypeAPI {
   constructor() {
     this.router = Router();
@@ -17,7 +18,7 @@ class subEventTypeAPI {
   setupRoutes() {
     let router = this.router;
     router.post("/create",createSubEventTypeController);
-    router.get("/all",getAllSubEventsController);
+    router.get("/all",auth([ROLES.USER,ROLES.ADMIN]),getAllSubEventsController);
   }
 
   getRouter() {

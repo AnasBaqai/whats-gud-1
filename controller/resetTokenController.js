@@ -79,7 +79,6 @@ exports.verifyToken = async (req, res, next) => {
       mainMessage: "You are verified",
       message: "you can proceed for password reset.",
     });
-  ;
   } catch (error) {
     console.log(error.message);
     return next({
@@ -93,7 +92,7 @@ exports.verifyconfirmation = async (req, res, next) => {
   try {
     const body = parseBody(req.body);
     const { email } = body;
-    if(!email){
+    if (!email) {
       return next({
         statusCode: STATUS_CODES.BAD_REQUEST,
         message: "please provide email.",

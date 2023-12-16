@@ -174,31 +174,6 @@ exports.loginUser = async (req, res, next) => {
   }
 };
 
-exports.createProfile = async (req, res, next) => {
-  try {
-    const body = parseBody(req.body);
-    const { preferredEvents, firstName, lastName, dob, image, location } = body;
-    const { error } = updateProfileValidation.validate(body);
-    if (error)
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: error.message,
-      });
-    const user = req.user;
-    const eventsIds = await findManyEventsByIds(preferredEvents);
-    const updatedUser = await updateUser(
-      { _id: user._id },
-      { preferredEvents: eventsIds, firstName, lastName, dob, image, location }
-    );
-    return generateResponse(updatedUser, "Profile created", res);
-  } catch (error) {
-    console.log(error.message);
-    return next({
-      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: "internal server error",
-    });
-  }
-};
 exports.registerUser = async (req, res, next) => {
   const body = parseBody(req.body);
 

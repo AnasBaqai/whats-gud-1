@@ -15,7 +15,7 @@ class eventAPI {
     setupRoutes() {
         let router = this.router;
        router.post('/create',auth([ROLES.USER,ROLES.ADMIN]),upload.single('coverImage'), createEventController);
-       router.get('/all',getAllEventsController );
+       router.get('/all',auth([ROLES.USER,ROLES.ADMIN]),getAllEventsController );
     }
 
     getRouter() {
