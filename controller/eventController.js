@@ -14,7 +14,7 @@ const { findUser } = require("../models/userModel");
 exports.createEventController = async (req, res, next) => {
   try {
     const body = parseBody(req.body);
-    
+
     // if (req.file) {
     //   coverImages = await s3Uploadv3([req.file]);
     // }
@@ -45,7 +45,7 @@ exports.getAllEventsController = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
-    const userId =  mongoose.Types.ObjectId(req.user.id);
+    const userId = mongoose.Types.ObjectId(req.user.id);
     const user = await findUser({ _id: userId });
 
     const mainCategoryId = mongoose.Types.ObjectId(req.query.mainCategoryId);
@@ -55,8 +55,8 @@ exports.getAllEventsController = async (req, res, next) => {
         near: { type: "Point", coordinates: user.location.coordinates },
         distanceField: "dist.calculated",
         maxDistance: 7000, // 7 km in meters
-        spherical: true
-      }
+        spherical: true,
+      },
     });
     const result = await getAllEvents({
       query: pipeline,
@@ -77,7 +77,6 @@ exports.getAllEventsController = async (req, res, next) => {
     });
   }
 };
-
 
 /*
 const NodeGeocoder = require('node-geocoder');

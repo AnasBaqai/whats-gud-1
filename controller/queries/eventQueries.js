@@ -1,10 +1,14 @@
-exports.getAllEventsQuery = (mainCategoryId) => {
+exports.getAllEventsQuery = (ID) => {
   return [
     // Match events with the specified main category ID
     {
-      $match: { "category.main": mainCategoryId },
+      $match: {
+        $or: [
+          { "category.main": ID },
+          { _id: ID }, // Assuming mainCategoryId is the general ID you want to match
+        ],
+      },
     },
-
     // Populate the main category
     {
       $lookup: {
