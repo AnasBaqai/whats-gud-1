@@ -39,8 +39,8 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.set('view engine', 'ejs');
 
 // Serve static files from the "public" directory
-// app.use(express.static('public'));
- app.use('/uploads', express.static('uploads'));
+app.use(express.static('public'));
+// app.use('/uploads', express.static('uploads'));
 
 // app.use(cookieSession({
 //     name: 'session',

@@ -10,6 +10,7 @@ const resetTokenApi = require('./resetTokenApi')
 const relationApi = require('./relationApi')
 const subEventTypeApi = require('./subEventTypeApi')
 const eventApi = require('./eventApi')
+const ticketApi = require('./ticketAPi')
 // all API routing files import here like above
 
 
@@ -29,6 +30,7 @@ class API {
         this.routeGroups.push(new relationApi());
         this.routeGroups.push(new subEventTypeApi());
         this.routeGroups.push(new eventApi());
+        this.routeGroups.push(new ticketApi());
         // all routes register here like above
     }
 

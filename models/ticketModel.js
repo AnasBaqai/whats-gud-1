@@ -27,7 +27,8 @@ exports.findTicket = (query) => TicketModel.findOne(query);
 
 // update ticket
 exports.updateTicket = (query, obj) =>TicketModel.findOneAndUpdate(query, obj, { new: true });
-
+//count tickets
+exports.countTickets = (query) => TicketModel.countDocuments(query);
 // get all tickets
 exports.getAllTickets = async ({ query, page, limit, responseKey = "data" }) => {
   const { data, pagination } = await getMongooseAggregatePaginatedData({

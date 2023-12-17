@@ -134,6 +134,9 @@ exports.getAllEventsQuery = (mainCategoryId) => {
         location: 1,
         coverImage: 1,
         creator: 1,
+        capacity: 1,
+        hotnessScore: 1,
+        ticketsSold: 1
       },
     },
   ];

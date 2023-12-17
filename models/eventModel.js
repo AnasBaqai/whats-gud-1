@@ -72,6 +72,8 @@ const eventSchema = new Schema(
       required: true,
     },
     capacity: { type: Number, required: true },
+    isApproved: { type: Boolean, default: false },
+    
     // Additional fields like 'created_at', 'updated_at', or 'isApproved' can be added as needed
   },
   { timestamps: true }

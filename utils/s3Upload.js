@@ -73,6 +73,7 @@ exports.s3Uploadv3 = async (files, base64 = false) => {
     return keys;
   } catch (e) {
     console.log(e);
+    throw e;
   }
 };
 

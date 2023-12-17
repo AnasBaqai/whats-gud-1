@@ -35,6 +35,7 @@ exports.eventValidation = Joi.object({
     type: Joi.string().valid('Point').default('Point'),
     coordinates: Joi.array().items(Joi.number()).required(),
   }).required(),
+  capacity: Joi.number().integer().min(1).required(),  
 });
 
 
