@@ -38,7 +38,7 @@ exports.getAllEventsController = async (req, res,next) => {
 
     const pipeline = [{ $match: {} }];
     const result = await getAllEventsType({ query: pipeline, page, limit });
-    return generateResponse({eventType:result,streamers:["Akon","Fulsie","tina","DAJ","SnoopCat","Mikkies","Hallow","Fate","Tenz"]}, "Events fetched successfully", res);
+    return generateResponse({eventType:result}, "Events fetched successfully", res);
   } catch (error) {
     console.log(error.message)
     return next({

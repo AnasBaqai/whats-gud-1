@@ -33,6 +33,9 @@ exports.updateProfileValidation = Joi.object({
   }).required(),
   isComplete: Joi.boolean().default(true),
   image: Joi.string().allow(null),
+  preferredCategories: Joi.array().items(Joi.string()).allow(null),
+  preferredDJ: Joi.array().items(Joi.string()).allow(null),
+  prefferedStreamers: Joi.array().items(Joi.string()).allow(null),
 });
 
 exports.locationValidation = Joi.object({

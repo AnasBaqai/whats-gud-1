@@ -2,7 +2,10 @@
 const { STATUS_CODES } = require("../utils/constants");
 const { parseBody, generateResponse } = require("../utils");
 const { updateUser, findUser } = require("../models/userModel");
-const { updateProfileValidation, locationValidation } = require("../validation/userValidation");
+const {
+  updateProfileValidation,
+  locationValidation,
+} = require("../validation/userValidation");
 const { findManyEventsTypeByIds } = require("../models/eventTypeModel");
 const mongoose = require("mongoose");
 const { s3Uploadv3, deleteImage } = require("../utils/s3Upload");
@@ -18,7 +21,10 @@ exports.createProfile = async (req, res, next) => {
       location,
       gender,
       image,
-      isComplete
+      isComplete,
+      preferredCategories,
+      preferredDJ,
+      prefferedStreamers,
     } = body;
     const { error } = updateProfileValidation.validate(body);
 
@@ -41,20 +47,22 @@ exports.createProfile = async (req, res, next) => {
     const user = await findUser({ _id: mongoose.Types.ObjectId(userId) });
     if (user.image) {
       console.log(user.image);
-      console.log( await deleteImage([user.image]));
+      console.log(await deleteImage([user.image]));
     }
     const eventsIds = await findManyEventsTypeByIds(preferredEvents);
     const updatedUser = await updateUser(
       { _id: mongoose.Types.ObjectId(userId) },
       {
-        preferredEvents: eventsIds,
+        preferredEvents: eventsIds ? eventsIds : [],
         firstName,
         lastName,
         dob,
         location,
         gender,
         image,
-        isComplete
+        isComplete,
+        preferredCategories: preferredCategories ? preferredCategories : [],
+        preferredDJ: preferredDJ ? preferredDJ : [],
       }
     );
     return generateResponse(updatedUser, "Profile created", res);
@@ -92,8 +100,7 @@ exports.uploadProfileImage = async (req, res, next) => {
   );
 };
 
-
-// Function to update user location 
+// Function to update user location
 exports.updateLocation = async (req, res, next) => {
   try {
     const body = parseBody(req.body);
