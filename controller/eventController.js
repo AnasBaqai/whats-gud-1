@@ -78,6 +78,28 @@ exports.getAllEventsController = async (req, res, next) => {
   }
 };
 
+// get event by id
+exports.getEventByIdController = async (req, res, next) => {
+  try {
+    const eventId =  mongoose.Types.ObjectId(req.params.eventId);
+    const pipeline = getAllEventsQuery(eventId);
+    const result = await getAllEvents({
+      query: pipeline,
+      page:1,
+      limit:1,
+      responseKey: "event",
+    });
+
+    return generateResponse(result, "Event fetched successfully", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
 /*
 const NodeGeocoder = require('node-geocoder');
 
