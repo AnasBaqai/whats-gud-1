@@ -18,6 +18,7 @@ exports.createProfile = async (req, res, next) => {
       location,
       gender,
       image,
+      isComplete
     } = body;
     const { error } = updateProfileValidation.validate(body);
 
@@ -53,6 +54,7 @@ exports.createProfile = async (req, res, next) => {
         location,
         gender,
         image,
+        isComplete
       }
     );
     return generateResponse(updatedUser, "Profile created", res);
