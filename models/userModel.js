@@ -29,6 +29,7 @@ const userSchema = new Schema(
     role: { type: String, default: "user", enum: Object.values(ROLES) },
     preferredEvents: [{ type: Schema.Types.ObjectId, ref: "EventType" }],
     isActive: { type: Boolean, default: true },
+    isComplete: { type: Boolean, default: false },
     fcmToken: { type: String },
     refreshToken: { type: String },
     googleId: { type: String },

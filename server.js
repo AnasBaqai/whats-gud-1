@@ -16,8 +16,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const AppleStrategy = require('passport-apple');
 const MongoStore = require('connect-mongo');
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger_output.json');
+// const swaggerUi = require('swagger-ui-express');
+// const swaggerDocument = require('./swagger_output.json');
 
 const app = express();
 // DB_CONNECT();
@@ -37,7 +37,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Set the view engine to ejs
 app.set('view engine', 'ejs');
 
