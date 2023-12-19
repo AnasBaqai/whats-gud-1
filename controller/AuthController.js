@@ -13,7 +13,8 @@ const {
   registerUserValidation,
   loginUserValidation,
 } = require("../validation/authValidation");
-const saltRounds = parseInt(process.env.SALT)
+const { createRelation, findRelation } = require("../models/relationModel");
+const saltRounds = parseInt(process.env.SALT);
 
 exports.googleLogin = async (accessToken, refreshToken, profile, done) => {
   const { id, displayName, emails, photos } = profile;
@@ -28,7 +29,9 @@ exports.googleLogin = async (accessToken, refreshToken, profile, done) => {
         image: photo,
         // ... other profile information ...
       });
+      await createRelation({ user: user._id });
     }
+
     done(null, user);
   } catch (error) {
     done(error, false);
@@ -52,9 +55,10 @@ exports.googleCallback = async (req, res, next) => {
       res
     );
   } catch (error) {
-    next({
+    console.log(error)
+    return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message:"internal server error",
     });
   }
 };
@@ -73,9 +77,9 @@ exports.facebookLogin = async (accessToken, refreshToken, profile, done) => {
         lastName: familyName,
         email,
         image: photo,
-
         // ... other profile information ...
       });
+      await createRelation({ user: user._id });
     }
     done(null, user);
   } catch (error) {
@@ -100,9 +104,10 @@ exports.facebookCallback = async (req, res, next) => {
       res
     );
   } catch (error) {
+    console.log(error);
     next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };
@@ -161,38 +166,14 @@ exports.loginUser = async (req, res, next) => {
     }
   } catch (error) {
     // Handle the error
-
+    console.log(error);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };
 
-exports.createProfile = async (req, res, next) => {
-  try {
-    const body = parseBody(req.body);
-    const { preferredEvents, firstName, lastName, dob, image, location } = body;
-    const { error } = updateProfileValidation.validate(body);
-    if (error)
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: error.message,
-      });
-    const user = req.user;
-    const eventsIds = await findManyEventsByIds(preferredEvents);
-    const updatedUser = await updateUser(
-      { _id: user._id },
-      { preferredEvents: eventsIds, firstName, lastName, dob, image, location }
-    );
-    return generateResponse(updatedUser, "Profile created", res);
-  } catch (error) {
-    return next({
-      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
-    });
-  }
-};
 exports.registerUser = async (req, res, next) => {
   const body = parseBody(req.body);
 
@@ -214,7 +195,7 @@ exports.registerUser = async (req, res, next) => {
     });
   try {
     // Hash the password
- 
+
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create a new user object
@@ -236,7 +217,7 @@ exports.registerUser = async (req, res, next) => {
     const token = generateToken(updatedUser);
     // Add the token to the response by setting it in with a name authorization
     res.setHeader("authorization", token);
-
+    await createRelation({ user: updatedUser._id });
     // Return the token and the user object
     return generateResponse(
       { accessToken: token, user: updatedUser },
@@ -245,10 +226,10 @@ exports.registerUser = async (req, res, next) => {
     );
   } catch (error) {
     // Return an error response
-
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: error.message,
+      message: "internal server error",
     });
   }
 };

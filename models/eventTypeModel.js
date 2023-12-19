@@ -16,19 +16,19 @@ const eventTypeModel = model("EventType", eventTypeSchema);
 
 //create utility functions to create, read, update, and delete events
 
-exports.createEvent = (obj) => eventTypeModel.create(obj);
+exports.createEventType = (obj) => eventTypeModel.create(obj);
 
-exports.findEventById = (eventId) => eventTypeModel.findById(eventId);
+exports.findEventTypeById = (eventId) => eventTypeModel.findById(eventId);
 
-exports.updateEvent = (eventId, obj) =>
+exports.updateEventType = (eventId, obj) =>
   eventTypeModel.findByIdAndUpdate(eventId, obj, { new: true });
 
-exports.deleteEvent = (eventId) => eventTypeModel.findByIdAndDelete(eventId);
+exports.deleteEventType = (eventId) => eventTypeModel.findByIdAndDelete(eventId);
 // implement findManyEventsByIds function
-exports.findManyEventsByIds = (eventIds) =>
+exports.findManyEventsTypeByIds = (eventIds) =>
   eventTypeModel.find({ _id: { $in: eventIds } });
 // write a function to get all events with pagination
-exports.getAllEvents = async ({ query, page, limit, responseKey = "data" }) => {
+exports.getAllEventsType = async ({ query, page, limit, responseKey = "data" }) => {
   const { data, pagination } = await getMongooseAggregatePaginatedData({
     model: eventTypeModel,
     query,

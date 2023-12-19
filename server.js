@@ -16,13 +16,15 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const AppleStrategy = require('passport-apple');
 const MongoStore = require('connect-mongo');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger_output.json');
 
 const app = express();
-DB_CONNECT();
+// DB_CONNECT();
 
 const server = http.createServer(app);
 // 
-// app.set('views', path.join(__dirname, 'views'));
+
 
 app.use(session({
     secret: 'secret', // A secret key for signing the session ID cookie
@@ -33,8 +35,9 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true, limit: "30mb" }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Set the view engine to ejs
 app.set('view engine', 'ejs');
 
@@ -92,7 +95,9 @@ app.use(log);
 new API(app).registerGroups();
 app.use(notFound);
 app.use(errorHandler);
-
-server.listen(PORT, () => {
+DB_CONNECT().then(()=>{
+  server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}/`);
 });
+})
+
