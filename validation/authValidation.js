@@ -1,19 +1,10 @@
 const Joi = require('joi');
 const {ROLES} = require('../utils/constants');
-
+const passwordPattern = new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.{8,30})');
 exports.registerUserValidation = Joi.object({
-  firstName: Joi.string().required(),
-  lastName: Joi.string().allow(null),
-  dob: Joi.date().required(),
   email: Joi.string().email().required(),
-  password: Joi.string().required(),
-  location: Joi.object({
-    type: Joi.string().valid('Point').default('Point'),
-    coordinates: Joi.array().items(Joi.number()).required(),
-  }).required(),
-  image: Joi.string(),
-  role: Joi.string().valid(ROLES).default(ROLES.USER),
-  preferredEvents: Joi.array().items(Joi.string()), // Assuming you have a custom validation for MongoDB ObjectIds
+  password: Joi.string().pattern(passwordPattern).min(8).max(30).required(),
+  role: Joi.string().valid(ROLES).default(ROLES.USER),// Assuming you have a custom validation for MongoDB ObjectIds
   isActive: Joi.boolean().default(true),
   fcmToken: Joi.string(),
   refreshToken: Joi.string(),

@@ -1,12 +1,10 @@
 'use strict';
 
 const { Router } = require('express')
-const { DefaultHandler } = require('../controller/rootController');
-const {provideSignedUrl}= require('../utils/s3Upload');
+const {createEvent,getAllEventsController} = require('../controller/eventTypeController');
 const auth = require('../middlewares/Auth');
 const {ROLES} = require('../utils/constants');
-
-class RootAPI {
+class eventTypeAPI {
     constructor() {
         this.router = Router();
         this.setupRoutes();
@@ -14,8 +12,8 @@ class RootAPI {
 
     setupRoutes() {
         let router = this.router;
-        router.get('/', DefaultHandler);
-        router.get('/signedUrl',auth([ROLES.USER,ROLES.ADMIN]),provideSignedUrl);
+       router.post('/create', createEvent);
+       router.get('/all',auth([ROLES.USER,ROLES.ADMIN]), getAllEventsController);
     }
 
     getRouter() {
@@ -23,8 +21,8 @@ class RootAPI {
     }
 
     getRouterGroup() {
-        return '/';
+        return '/event/type';
     }
 }
 
-module.exports = RootAPI;
+module.exports = eventTypeAPI;

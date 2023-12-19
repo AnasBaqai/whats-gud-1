@@ -1,12 +1,11 @@
 'use strict';
 
 const { Router } = require('express')
-const { DefaultHandler } = require('../controller/rootController');
-const {provideSignedUrl}= require('../utils/s3Upload');
+const { createNewTicket,verifyTicket } = require('../controller/ticketController');
 const auth = require('../middlewares/Auth');
 const {ROLES} = require('../utils/constants');
 
-class RootAPI {
+class ticketAPI {
     constructor() {
         this.router = Router();
         this.setupRoutes();
@@ -14,8 +13,8 @@ class RootAPI {
 
     setupRoutes() {
         let router = this.router;
-        router.get('/', DefaultHandler);
-        router.get('/signedUrl',auth([ROLES.USER,ROLES.ADMIN]),provideSignedUrl);
+        router.post('/create',auth([ROLES.USER,ROLES.ADMIN]), createNewTicket);
+        router.get('/barcode/verify', verifyTicket);
     }
 
     getRouter() {
@@ -23,8 +22,8 @@ class RootAPI {
     }
 
     getRouterGroup() {
-        return '/';
+        return '/ticket';
     }
 }
 
-module.exports = RootAPI;
+module.exports = ticketAPI;

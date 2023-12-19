@@ -1,7 +1,7 @@
 'use strict';
 
 const { Router } = require('express')
-const {loginUser,registerUser,googleCallback} = require('../controller/AuthController');
+const {loginUser,registerUser,googleCallback, facebookCallback, } = require('../controller/AuthController');
 const passport = require('passport');
 class authAPI {
     constructor() {
@@ -15,7 +15,9 @@ class authAPI {
         router.post('/login', loginUser);
         router.post('/register', registerUser);
         router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-        router.get('/google/callback', passport.authenticate('google', { failureRedirect: 'api/auth/login' }), googleCallback);
+        router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/api' }), googleCallback);
+        router.get('/facebook', passport.authenticate('facebook', { scope: [ 'email'] }));
+        router.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/api' }), facebookCallback);
     }
 
     getRouter() {
