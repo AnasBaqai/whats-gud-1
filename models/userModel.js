@@ -35,6 +35,24 @@ const userSchema = new Schema(
     googleId: { type: String },
     facebookId: { type: String },
     appleId: { type: String },
+    preferredCategories: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Category.subCategory",
+      },
+    ],
+    preferredDJ: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    prefferedStreamers: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );
