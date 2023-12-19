@@ -11,6 +11,7 @@ const relationApi = require('./relationApi')
 const subEventTypeApi = require('./subEventTypeApi')
 const eventApi = require('./eventApi')
 const ticketApi = require('./ticketAPi')
+const categoriesApi = require('./categoriesAPi')
 // all API routing files import here like above
 
 
@@ -31,6 +32,7 @@ class API {
         this.routeGroups.push(new subEventTypeApi());
         this.routeGroups.push(new eventApi());
         this.routeGroups.push(new ticketApi());
+        this.routeGroups.push(new categoriesApi());
         // all routes register here like above
     }
 
