@@ -63,6 +63,7 @@ exports.createProfile = async (req, res, next) => {
         isComplete,
         preferredCategories: preferredCategories ? preferredCategories : [],
         preferredDJ: preferredDJ ? preferredDJ : [],
+        prefferedStreamers: prefferedStreamers ? prefferedStreamers : [],
       }
     );
     return generateResponse(updatedUser, "Profile created", res);
