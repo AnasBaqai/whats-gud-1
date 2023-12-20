@@ -138,53 +138,22 @@ exports.loginUser = async (req, res, next) => {
         message: "Invalid username or password",
       });
     }
-
-    // const hashedPasswordFromDB = user.password; // Replace with actual retrieval logic
-
-    // // Compare the provided password with the hashed password
-    // const isPasswordMatch = await bcrypt.compare(
-    //   password,
-    //   hashedPasswordFromDB
-    // );
     const token = generateToken(user);
     const refreshToken = generateRefreshToken(user);
     // Add the token to the response
     res.setHeader("authorization", token);
     //add the refresh token to the user
     user.refreshToken = refreshToken;
-    const updatedUser = await updateUser({ _id: user._id }, { refreshToken });
+    const updatedUser = await updateUser(
+      { _id: user._id },
+      { refreshToken }
+    ).exec();
     // Return the token and the user object
     return generateResponse(
       { accessToken: token, user: updatedUser },
       "User authenticated",
       res
     );
-
-    // if (isPasswordMatch) {
-    //   // Passwords match, user is authenticated
-    //   // Generate a token
-    //   const token = generateToken(user);
-    //   const refreshToken = generateRefreshToken(user);
-    //   // Add the token to the response
-    //   res.setHeader("authorization", token);
-    //   //add the refresh token to the user
-    //   user.refreshToken = refreshToken;
-    //   const updatedUser = await updateUser({ _id: user._id }, { refreshToken });
-    //   // Return the token and the user object
-    //   return generateResponse(
-    //     { accessToken: token, user: updatedUser },
-    //     "User authenticated",
-    //     res
-    //   );
-    //   // Add your logic for handling the authenticated user here
-    // } else {
-    //   // Passwords do not match, user is not authenticated
-    //   // Return an error response
-    //   return next({
-    //     statusCode: STATUS_CODES.UNAUTHORIZED,
-    //     message: "Invalid username or password",
-    //   });
-    // }
   } catch (error) {
     // Handle the error
     console.log(error);
@@ -194,60 +163,56 @@ exports.loginUser = async (req, res, next) => {
     });
   }
 };
-
 exports.registerUser = async (req, res, next) => {
   const body = parseBody(req.body);
+  const { email, password } = body // Directly destructure email and password
 
-  const { email, password } = body;
-  // implement the logic of joi validation
-  const { error } = registerUserValidation.validate(body);
-  if (error)
+  // Joi validation
+  const { error } = registerUserValidation.validate({ email, password });
+  if (error) {
     return next({
       statusCode: STATUS_CODES.BAD_REQUEST,
       message: error.message,
     });
-  // Check if the user already exists in the database
-  const userExists = await findUser({ email });
+  }
 
-  if (userExists)
-    return next({
-      statusCode: STATUS_CODES.BAD_REQUEST,
-      message: "User already exists",
-    });
   try {
-    // Hash the password
+    // Check if the user already exists in the database
+    if (await findUser({ email }).exec()) {
+      return next({
+        statusCode: STATUS_CODES.BAD_REQUEST,
+        message: "User already exists",
+      });
+    }
 
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create a new user object
-    const newUser = await createUser({
-      email,
-      password: hashedPassword,
-    });
-    // Save the new user to the database
+    // Create a new user and save to the database
+    const newUser = await createUser({ email, password: hashedPassword });
 
-    //create a refresh token
+    // Generate tokens
     const refreshToken = generateRefreshToken(newUser);
-    newUser.refreshToken = refreshToken;
-    const updatedUser = await updateUser(
-      { _id: newUser._id },
-      { refreshToken }
-    );
+    const token = generateToken(newUser);
 
-    // Generate a token
-    const token = generateToken(updatedUser);
-    // Add the token to the response by setting it in with a name authorization
+    // Update user with refreshToken asynchronously
+    updateUser({ _id: newUser._id }, { refreshToken }).exec();
+
+    // Set the token in the response header
     res.setHeader("authorization", token);
-    await createRelation({ user: updatedUser._id });
+
+    // Optionally, create relations asynchronously if it's not required to wait for its completion
+    createRelation({ user: newUser._id });
+
+
     // Return the token and the user object
     return generateResponse(
-      { accessToken: token, user: updatedUser },
+      { accessToken: token, user: newUser },
       "User signed Up",
       res
     );
   } catch (error) {
-    // Return an error response
-    console.log(error.message);
+    console.error(error); // Consider more selective logging in production
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
