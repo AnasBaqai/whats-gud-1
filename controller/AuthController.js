@@ -55,10 +55,10 @@ exports.googleCallback = async (req, res, next) => {
       res
     );
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message:"internal server error",
+      message: "internal server error",
     });
   }
 };
@@ -124,46 +124,67 @@ exports.loginUser = async (req, res, next) => {
       });
     // Retrieve the hashed password from the database
     const { email, password } = body;
-    const user = await findUser({ email });
+    const user = await findUser({ email }).exec();
     if (!user) {
       return next({
         statusCode: STATUS_CODES.UNAUTHORIZED,
         message: "User does not exist",
       });
     }
-    const hashedPasswordFromDB = user.password; // Replace with actual retrieval logic
-
-    // Compare the provided password with the hashed password
-    const isPasswordMatch = await bcrypt.compare(
-      password,
-      hashedPasswordFromDB
-    );
-
-    if (isPasswordMatch) {
-      // Passwords match, user is authenticated
-      // Generate a token
-      const token = generateToken(user);
-      const refreshToken = generateRefreshToken(user);
-      // Add the token to the response
-      res.setHeader("authorization", token);
-      //add the refresh token to the user
-      user.refreshToken = refreshToken;
-      const updatedUser = await updateUser({ _id: user._id }, { refreshToken });
-      // Return the token and the user object
-      return generateResponse(
-        { accessToken: token, user: updatedUser },
-        "User authenticated",
-        res
-      );
-      // Add your logic for handling the authenticated user here
-    } else {
-      // Passwords do not match, user is not authenticated
-      // Return an error response
+    // bcrypt.compare is CPU-intensive but necessary for security
+    if (!(await bcrypt.compare(password, user.password))) {
       return next({
         statusCode: STATUS_CODES.UNAUTHORIZED,
         message: "Invalid username or password",
       });
     }
+
+    // const hashedPasswordFromDB = user.password; // Replace with actual retrieval logic
+
+    // // Compare the provided password with the hashed password
+    // const isPasswordMatch = await bcrypt.compare(
+    //   password,
+    //   hashedPasswordFromDB
+    // );
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+    // Add the token to the response
+    res.setHeader("authorization", token);
+    //add the refresh token to the user
+    user.refreshToken = refreshToken;
+    const updatedUser = await updateUser({ _id: user._id }, { refreshToken });
+    // Return the token and the user object
+    return generateResponse(
+      { accessToken: token, user: updatedUser },
+      "User authenticated",
+      res
+    );
+
+    // if (isPasswordMatch) {
+    //   // Passwords match, user is authenticated
+    //   // Generate a token
+    //   const token = generateToken(user);
+    //   const refreshToken = generateRefreshToken(user);
+    //   // Add the token to the response
+    //   res.setHeader("authorization", token);
+    //   //add the refresh token to the user
+    //   user.refreshToken = refreshToken;
+    //   const updatedUser = await updateUser({ _id: user._id }, { refreshToken });
+    //   // Return the token and the user object
+    //   return generateResponse(
+    //     { accessToken: token, user: updatedUser },
+    //     "User authenticated",
+    //     res
+    //   );
+    //   // Add your logic for handling the authenticated user here
+    // } else {
+    //   // Passwords do not match, user is not authenticated
+    //   // Return an error response
+    //   return next({
+    //     statusCode: STATUS_CODES.UNAUTHORIZED,
+    //     message: "Invalid username or password",
+    //   });
+    // }
   } catch (error) {
     // Handle the error
     console.log(error);
