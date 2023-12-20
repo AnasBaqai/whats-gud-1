@@ -13,76 +13,69 @@ const { s3Uploadv3, deleteImage } = require("../utils/s3Upload");
 const { findEvent } = require("../models/eventModel");
 const { TICKET_STATUS } = require("../utils/constants");
 const { ticketValidation } = require("../validation/ticketValidation");
+
+
+
 exports.createNewTicket = async (req, res, next) => {
+  const { eventId, price, quantity } = req.body;
+  const userId = req.user.id;
+
+  // Validate quantity
+  if (quantity <= 0) {
+    return next({ statusCode: STATUS_CODES.BAD_REQUEST, message: "Invalid ticket quantity" });
+  }
+
   try {
-    const body = parseBody(req.body);
-    const { eventId, price, quantity } = body;
-    const userId = req.user.id;
+    const eventIdObj = mongoose.Types.ObjectId(eventId);
+    const event = await findEvent({ _id: eventIdObj });
+    const ticketsBought = await countTickets({ eventId: eventIdObj });
 
-    // Check for valid quantity
-    if (quantity <= 0) {
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: "Invalid ticket quantity",
-      });
-    }
-
-    // Check if event capacity is full
-    const event = await findEvent({ _id: mongoose.Types.ObjectId(eventId) });
-    const ticketsBought = await countTickets({
-      eventId: mongoose.Types.ObjectId(eventId),
-    });
-
+    // Check event capacity
     if (ticketsBought + quantity > event.capacity) {
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: "Event capacity will be exceeded with this purchase",
-      });
+      return next({ statusCode: STATUS_CODES.BAD_REQUEST, message: "Event capacity will be exceeded" });
     }
 
     let tickets = [];
     for (let i = 0; i < quantity; i++) {
-      const ticketId = new mongoose.Types.ObjectId();
-      const ticketIdString = ticketId.toString();
-      const barcode = await generateBarcode(ticketIdString);
-      const barcodeUrl = await s3Uploadv3([barcode]);
-      const newTicket = {
-        _id: ticketId,
-        userId,
-        eventId,
-        price,
-        barcode: barcodeUrl[0],
-      };
-      const { error } = ticketValidation.validate(newTicket);
-      if (error) {
-        await deleteImage([barcodeUrl]);
-        // If error occurs, rollback any tickets already created in this loop
-        for (let createdTicket of tickets) {
-          await deleteTicket({ _id: createdTicket._id });
-          await deleteImage([createdTicket.barcode]);
-        }
-        return next({
-          statusCode: STATUS_CODES.BAD_REQUEST,
-          message: error.message,
-        });
+      const newTicket = await createAndValidateTicket(userId, eventIdObj, price);
+      if (newTicket.error) {
+        // Rollback logic
+        await rollbackTickets(tickets);
+        return next({ statusCode: STATUS_CODES.BAD_REQUEST, message: newTicket.error });
       }
-      const ticket = await createTicket(newTicket);
-      tickets.push(ticket);
+      tickets.push(newTicket);
     }
     return generateResponse(tickets, "Tickets created successfully", res);
   } catch (error) {
-    console.log(error.message);
     // Rollback in case of any error
-    for (let ticket of tickets) {
-      await deleteTicket({ _id: ticket._id });
-      await deleteImage([ticket.barcode]);
-    }
-    return next({
-      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: "Internal server error",
-    });
+    await rollbackTickets(tickets);
+    console.error(error); // Consider more selective logging
+    return next({ statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR, message: "Internal server error" });
   }
 };
+
+async function createAndValidateTicket(userId, eventId, price) {
+  const ticketId = new mongoose.Types.ObjectId();
+  const barcode = await generateBarcode(ticketId.toString());
+  const barcodeUrl = await s3Uploadv3([barcode]);
+  const ticketData = { _id: ticketId, userId, eventId, price, barcode: barcodeUrl[0] };
+
+  const { error } = ticketValidation.validate(ticketData);
+  if (error) {
+    await deleteImage([barcodeUrl]);
+    return { error: error.message };
+  }
+  const ticket = await createTicket(ticketData);
+  return ticket;
+}
+
+async function rollbackTickets(tickets) {
+  for (let ticket of tickets) {
+    await deleteTicket({ _id: ticket._id });
+    await deleteImage([ticket.barcode]);
+  }
+}
+
 
 exports.verifyTicket = async (req, res, next) => {
   try {

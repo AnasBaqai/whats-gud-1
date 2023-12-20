@@ -11,64 +11,65 @@ const mongoose = require("mongoose");
 const { s3Uploadv3, deleteImage } = require("../utils/s3Upload");
 // Function to update user profile
 exports.createProfile = async (req, res, next) => {
+  const body = parseBody(req.body);
+  const {
+    preferredEvents,
+    firstName,
+    lastName,
+    dob,
+    location,
+    gender,
+    image,
+    isComplete,
+    preferredCategories,
+    preferredDJ,
+    prefferedStreamers,
+  } = body;
+
+  const { error } = updateProfileValidation.validate(body);
+  if (error) {
+    return next({
+      statusCode: STATUS_CODES.BAD_REQUEST,
+      message: error.message,
+    });
+  }
+
+  // Validate and parse longitude and latitude
+  const [longitude, latitude] = location.coordinates.map((coord) =>
+    parseFloat(coord)
+  );
+  if (isNaN(longitude) || isNaN(latitude)) {
+    return next({
+      statusCode: STATUS_CODES.BAD_REQUEST,
+      message: "Invalid longitude or latitude values.",
+    });
+  }
+
   try {
-    const body = parseBody(req.body);
-    const {
-      preferredEvents,
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const user = await findUser({ _id: userId }).exec();
+    if (user && user.image) {
+      await deleteImage([user.image]); // Assuming deleteImage is an async function
+    }
+
+    const updateData = {
+      preferredEvents: preferredEvents || [],
       firstName,
       lastName,
       dob,
-      location,
+      location: { type: "Point", coordinates: [longitude, latitude] },
       gender,
       image,
       isComplete,
-      preferredCategories,
-      preferredDJ,
-      prefferedStreamers,
-    } = body;
-    const { error } = updateProfileValidation.validate(body);
+      preferredCategories: preferredCategories || [],
+      preferredDJ: preferredDJ || [],
+      prefferedStreamers: prefferedStreamers || [],
+    };
 
-    // Validate and parse longitude and latitude
-    const longitude = parseFloat(location.coordinates[0]);
-    const latitude = parseFloat(location.coordinates[1]);
-    // Check if parsing was successful
-    if (isNaN(longitude) || isNaN(latitude)) {
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: "Invalid longitude or latitude values.",
-      });
-    }
-    if (error)
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: error.message,
-      });
-    const userId = req.user.id;
-    const user = await findUser({ _id: mongoose.Types.ObjectId(userId) });
-    if (user.image) {
-      console.log(user.image);
-      console.log(await deleteImage([user.image]));
-    }
-    const eventsIds = await findManyEventsTypeByIds(preferredEvents);
-    const updatedUser = await updateUser(
-      { _id: mongoose.Types.ObjectId(userId) },
-      {
-        preferredEvents: eventsIds ? eventsIds : [],
-        firstName,
-        lastName,
-        dob,
-        location,
-        gender,
-        image,
-        isComplete,
-        preferredCategories: preferredCategories ? preferredCategories : [],
-        preferredDJ: preferredDJ ? preferredDJ : [],
-        prefferedStreamers: prefferedStreamers ? prefferedStreamers : [],
-      }
-    );
+    const updatedUser = await updateUser({ _id: userId }, updateData).exec();
     return generateResponse(updatedUser, "Profile created", res);
   } catch (error) {
-    console.log(error.message);
+    console.error(error); // Consider more selective logging in production
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",

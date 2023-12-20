@@ -1,13 +1,12 @@
 const { Schema, model } = require("mongoose");
-const { sign } = require("jsonwebtoken");
 const { TICKET_STATUS } = require("../utils/constants");
 const mongoosePaginate = require("mongoose-paginate-v2");
 const aggregatePaginate = require("mongoose-aggregate-paginate-v2");
 const { getMongooseAggregatePaginatedData } = require("../utils");
 
 const ticketSchema = new Schema({
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true,index:true },
+  eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true,index:true },
   purchaseDate: { type: Date, default: Date.now },
   price: { type: Number, required: true },
   status: { type: String, enum:Object.values(TICKET_STATUS), default: 'unused' },
@@ -16,6 +15,8 @@ const ticketSchema = new Schema({
 
 ticketSchema.plugin(mongoosePaginate);
 ticketSchema.plugin(aggregatePaginate);
+
+ticketSchema.index({ userId: 1, eventId: 1 });
 
 const TicketModel = model("Ticket", ticketSchema);
 
