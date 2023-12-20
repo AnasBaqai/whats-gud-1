@@ -11,7 +11,7 @@ const objectId = (value, helpers) => {
 exports.ticketValidation = Joi.object({
   _id: Joi.custom(objectId, "Object ID validation").required(), // Assuming _id is a string, adjust if it's another type
   userId: Joi.string().required(),
-  eventId: Joi.string().required(),
+  eventId: Joi.custom(objectId, "Object ID validation").required(),
   price: Joi.number().required(),
   barcode: Joi.string().required(),
 });
