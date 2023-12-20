@@ -48,6 +48,62 @@ exports.pushSubCategory = async (req, res, next) => {
     });
   }
 }
+const sampleData =[
+  {
+    "_id": "1",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com"
+  },
+  {
+    "_id": "2",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane.smith@example.com"
+  },
+  {
+    "_id": "3",
+    "firstName": "Mike",
+    "lastName": "Johnson",
+    "email": "mike.johnson@example.com"
+  },
+  {
+    "_id": "4",
+    "firstName": "Sara",
+    "lastName": "Williams",
+    "email": "sara.williams@example.com"
+  },
+  {
+    "_id": "5",
+    "firstName": "Alex",
+    "lastName": "Brown",
+    "email": "alex.brown@example.com"
+  },
+  {
+    "_id": "6",
+    "firstName": "Chris",
+    "lastName": "Miller",
+    "email": "chris.miller@example.com"
+  },
+  {
+    "_id": "7",
+    "firstName": "Emily",
+    "lastName": "Davis",
+    "email": "emily.davis@example.com"
+  },
+  {
+    "_id": "8",
+    "firstName": "Daniel",
+    "lastName": "Clark",
+    "email": "daniel.clark@example.com"
+  },
+  {
+    "_id": "9",
+    "firstName": "Megan",
+    "lastName": "Moore",
+    "email": "megan.moore@example.com"
+  }
+]
 
 
 // function to get all categories
@@ -65,6 +121,8 @@ exports.getAllCategories = async (req, res, next) => {
     // Combine transformed categories and eventTypes
     const result = {
       ...transformedCategories,
+      Streamers: sampleData,
+      DJ: sampleData,
       Events: eventTypes,
     };
 
