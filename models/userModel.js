@@ -12,7 +12,7 @@ const userSchema = new Schema(
     firstName: { type: String, default: null },
     lastName: { type: String, default: null },
     dob: { type: Date },
-    email: { type: String, unique: true, required: true, lowercase: true, index: true },
+    email: { type: String, unique: true, required: true, lowercase: true},
     password: { type: String },
     location: {
       type: {
@@ -62,7 +62,7 @@ userSchema.plugin(mongoosePaginate);
 userSchema.plugin(aggregatePaginate);
 
 userSchema.index({ "location.coordinates": "2dsphere" });
-userSchema.index({ email: 1 }); 
+
 const UserModel = model("User", userSchema);
 
 // create new user
