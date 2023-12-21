@@ -41,4 +41,9 @@ exports.getAllTickets = async ({ query, page, limit, responseKey = "data" }) => 
   return  { [responseKey]: data, pagination };;
 };
 
+// delete ticket
+exports.deleteTicket = (query) => TicketModel.deleteOne(query);
+
+// delete many tickets
+exports.deleteManyTickets = (query) => TicketModel.deleteMany(query);
 
