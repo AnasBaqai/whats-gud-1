@@ -140,7 +140,8 @@ exports.getAllEventsQuery = (ID) => {
         creator: 1,
         capacity: 1,
         hotnessScore: 1,
-        ticketsSold: 1
+        ticketsSold: 1,
+        createdAt: 1,
       },
     },
   ];
