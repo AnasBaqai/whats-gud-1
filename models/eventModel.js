@@ -10,7 +10,6 @@ const eventSchema = new Schema(
         type: Schema.Types.ObjectId,
         ref: "EventType",
         required: true,
-        index: true,
       },
       sub: [{
         type: Schema.Types.ObjectId,
@@ -27,7 +26,6 @@ const eventSchema = new Schema(
         type: Schema.Types.ObjectId, 
         ref: 'User', 
         required: function() { return !this.artistDJ.name; }  
-        
       },
       name: { 
         type: String, 
@@ -72,7 +70,6 @@ const eventSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     capacity: { type: Number, required: true },
     isApproved: { type: Boolean, default: false },
@@ -85,9 +82,6 @@ const eventSchema = new Schema(
 eventSchema.plugin(mongoosePaginate);
 eventSchema.plugin(aggregatePaginate);
 eventSchema.index({ "location.coordinates": "2dsphere" });
-eventSchema.index({ "category.main": 1 });
-eventSchema.index({ "artistDJ.id": 1 });
-eventSchema.index({ "creator": 1 });
 const Event = model("Event", eventSchema);
 
 // create new event
