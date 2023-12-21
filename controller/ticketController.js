@@ -3,6 +3,7 @@ const {
   countTickets,
   updateTicket,
   findTicket,
+  deleteTicket
 } = require("../models/ticketModel");
 const { generateBarcode } = require("../utils/barcodeGenerator");
 const { generateResponse } = require("../utils");
