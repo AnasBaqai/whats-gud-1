@@ -4,7 +4,10 @@ const { Router } = require("express");
 const {
   createPostController,
   createCommentController,
-  createReplyController
+  createReplyController,
+  likeCommentController,
+  likePostController,
+  likeReplyController,
 } = require("../controller/postController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
@@ -30,6 +33,21 @@ class postAPI {
       "/reply/create/:commentId",
       auth([ROLES.USER, ROLES.ADMIN]),
       createReplyController)
+    router.patch(
+      "/like/:postId",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      likePostController
+    );
+    router.patch(
+      "/comment/like/:commentId",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      likeCommentController
+    );
+    router.patch(
+      "/reply/like/:replyId",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      likeReplyController
+    );
   }
 
   getRouter() {

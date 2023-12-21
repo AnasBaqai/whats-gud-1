@@ -14,7 +14,7 @@ const ReplyModel = model("Reply", replySchema);
 
 exports.createReply = (obj) => ReplyModel.create(obj);
 
-exports.findReply = (query) => ReplyModel.find(query);
+exports.findReply = (query) => ReplyModel.findOne(query);
 
 exports.updateReply = (query, obj) => ReplyModel.findOneAndUpdate(query, obj, { new: true });
 

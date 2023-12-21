@@ -1,5 +1,5 @@
 // Import necessary modules
-const { createEventType, getAllEventsType } = require("../models/eventTypeModel");
+const { createEventType, getAllEventsType, } = require("../models/eventTypeModel");
 const { parseBody, generateResponse } = require("../utils");
 const { STATUS_CODES } = require("../utils/constants");
 const { eventTypeValidation } = require("../validation/eventValidation");

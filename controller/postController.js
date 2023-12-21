@@ -12,7 +12,7 @@ const {
   postValidation,
   replyValidation,
 } = require("../validation/postValidation");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 
 // create post
 exports.createPostController = async (req, res, next) => {
@@ -97,6 +97,121 @@ exports.createReplyController = async (req, res, next) => {
     });
     await updateComment({ _id: commentId }, { $push: { replies: reply._id } });
     return generateResponse(reply, "Reply created successfully", res);
+  } catch (err) {
+    console.log(err.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// like post
+exports.likePostController = async (req, res, next) => {
+  try {
+    const postId = mongoose.Types.ObjectId(req.params.postId);
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const post = await findPost({ _id: postId });
+    if (!post)
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "Post not found",
+      });
+
+    const isLiked = post.likes && post.likes.includes(userId);
+
+    if (isLiked) {
+      await updatePost({ _id: postId }, { $pull: { likes: userId } });
+
+      return generateResponse(
+        { likeStatus: false },
+        "Post unliked successfully",
+        res
+      );
+    } else {
+      await updatePost({ _id: postId }, { $push: { likes: userId } });
+
+      return generateResponse(
+        { likeStatus: true },
+        "Post liked successfully",
+        res
+      );
+    }
+  } catch (err) {
+    console.log(err.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// like comment
+exports.likeCommentController = async (req, res, next) => {
+  try {
+    const commentId = mongoose.Types.ObjectId(req.params.commentId);
+    const userId = req.user.id;
+    const comment = await findComment({ _id: commentId });
+    if (!comment)
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "Comment not found",
+      });
+    const isLiked = comment.likes?.includes(userId);
+    if (isLiked) {
+      await updateComment({ _id: commentId }, { $pull: { likes: userId } });
+
+      return generateResponse(
+        { likeStatus: false },
+        "Comment unliked successfully",
+        res
+      );
+    } else {
+      await updateComment({ _id: commentId }, { $push: { likes: userId } });
+
+      return generateResponse(
+        { likeStatus: true },
+        "Comment liked successfully",
+        res
+      );
+    }
+  } catch (err) {
+    console.log(err.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// like reply
+
+exports.likeReplyController = async (req, res, next) => {
+  try {
+    const replyId = mongoose.Types.ObjectId(req.params.replyId);
+    const userId = req.user.id;
+    const reply = await findReply({ _id: replyId });
+    if (!reply)
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "reply not found",
+      });
+    const isLiked = reply.likes?.includes(userId);
+    if (isLiked) {
+      await updateReply({ _id: replyId }, { $pull: { likes: userId } });
+      return generateResponse(
+        { likeStatus: false },
+        "reply unliked successfully",
+        res
+      );
+    } else {
+      await updateReply({ _id: replyId }, { $push: { likes: userId } });
+      return generateResponse(
+        { likeStatus: true },
+        "reply liked successfully",
+        res
+      );
+    }
   } catch (err) {
     console.log(err.message);
     return next({

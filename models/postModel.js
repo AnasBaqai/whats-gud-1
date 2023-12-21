@@ -20,7 +20,7 @@ const PostModel = model("Post", postSchema);
 exports.createPost = (obj) => PostModel.create(obj);
 
 // find post by query
-exports.findPost = (query) => PostModel.find(query);
+exports.findPost = (query) => PostModel.findOne(query);
 
 // update post
 exports.updatePost = (query, obj) =>

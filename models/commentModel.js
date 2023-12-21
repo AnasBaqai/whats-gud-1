@@ -15,7 +15,7 @@ const CommentModel = model("Comment", commentSchema);
 
 exports.createComment = (obj) => CommentModel.create(obj);
 
-exports.findComment = (query) => CommentModel.find(query);
+exports.findComment = (query) => CommentModel.findOne(query);
 
 exports.updateComment = (query, obj) =>
   CommentModel.findOneAndUpdate(query, obj, { new: true });
