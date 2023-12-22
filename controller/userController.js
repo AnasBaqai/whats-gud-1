@@ -25,7 +25,6 @@ exports.createProfile = async (req, res, next) => {
     preferredDJ,
     prefferedStreamers,
   } = body;
-  console.log(gender)
   const { error } = updateProfileValidation.validate(body);
   if (error) {
     return next({
