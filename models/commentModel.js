@@ -3,6 +3,7 @@ const { Schema, model } = mongoose;
 
 const commentSchema = new Schema(
   {
+    commentedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     content: { type: String, required: true },
     media: [{ type: String }],
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],

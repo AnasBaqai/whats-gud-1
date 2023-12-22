@@ -1,4 +1,9 @@
-const { createPost, findPost, updatePost } = require("../models/postModel");
+const {
+  createPost,
+  findPost,
+  updatePost,
+  getAllPosts,
+} = require("../models/postModel");
 const {
   createComment,
   findComment,
@@ -13,6 +18,7 @@ const {
   replyValidation,
 } = require("../validation/postValidation");
 const mongoose = require("mongoose");
+const { getPostsQuery, getCommentsOfPostQuery } = require("./queries/postQueries");
 
 // create post
 exports.createPostController = async (req, res, next) => {
@@ -48,10 +54,12 @@ exports.createCommentController = async (req, res, next) => {
   try {
     const body = parseBody(req.body);
     const { content, media } = body;
+    const userId = mongoose.Types.ObjectId(req.user.id);
     const postId = mongoose.Types.ObjectId(req.params.postId);
     const newComment = {
       content,
       media,
+      commentedBy: userId,
     };
     const { error } = commentValidation.validate(newComment);
     if (error)
@@ -59,10 +67,7 @@ exports.createCommentController = async (req, res, next) => {
         statusCode: STATUS_CODES.BAD_REQUEST,
         message: error.message,
       });
-    const comment = await createComment({
-      content,
-      media,
-    });
+    const comment = await createComment(newComment);
     await updatePost({ _id: postId }, { $push: { comments: comment._id } });
 
     return generateResponse(comment, "Comment created successfully", res);
@@ -80,10 +85,12 @@ exports.createReplyController = async (req, res, next) => {
   try {
     const body = parseBody(req.body);
     const { content, media } = body;
+    const userId = mongoose.Types.ObjectId(req.user.id);
     const commentId = mongoose.Types.ObjectId(req.params.commentId);
     const newReply = {
       content,
       media,
+      repliedBy: userId,
     };
     const { error } = replyValidation.validate(newReply);
     if (error)
@@ -91,10 +98,7 @@ exports.createReplyController = async (req, res, next) => {
         statusCode: STATUS_CODES.BAD_REQUEST,
         message: error.message,
       });
-    const reply = await createReply({
-      content,
-      media,
-    });
+    const reply = await createReply(newReply);
     await updateComment({ _id: commentId }, { $push: { replies: reply._id } });
     return generateResponse(reply, "Reply created successfully", res);
   } catch (err) {
@@ -214,6 +218,70 @@ exports.likeReplyController = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// get all posts
+
+exports.getAllPostsController = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const currentUserId = mongoose.Types.ObjectId(req.user.id);
+    const query = getPostsQuery(currentUserId);
+    const result = await getAllPosts({ query, page, limit });
+    return generateResponse(
+      { post: result },
+      "Posts fetched successfully",
+      res
+    );
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+//get post by id
+exports.getPostById = async (req, res, next) => {
+  try {
+    const postId = mongoose.Types.ObjectId(req.params.postId);
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const query = getPostsQuery(userId, postId);
+    const result = await getAllPosts({ query, page: 1, limit: 1 });
+    return generateResponse({ post: result }, "Post fetched successfully", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// get all comments of a post
+
+exports.getAllCommentsController = async (req, res, next) => {
+  try{
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const postId = mongoose.Types.ObjectId(req.params.postId);
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    console.log(postId, userId)
+    const query = getCommentsOfPostQuery(userId, postId);
+    const result = await getAllPosts({ query, page, limit });
+    return generateResponse(
+      { comment: result },
+      "Comments fetched successfully",
+      res
+    );
+  }catch(err){
+    console.log(err.message)
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",

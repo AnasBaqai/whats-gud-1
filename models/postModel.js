@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
+const mongoosePaginate = require("mongoose-paginate-v2");
+const aggregatePaginate = require("mongoose-aggregate-paginate-v2");
+const { getMongooseAggregatePaginatedData } = require("../utils");
 
 const postSchema = new Schema(
   {
@@ -12,8 +15,11 @@ const postSchema = new Schema(
   },
   { timestamps: true }
 );
+postSchema.plugin(mongoosePaginate);
+postSchema.plugin(aggregatePaginate);
 
 const PostModel = model("Post", postSchema);
+
 
 // create post
 

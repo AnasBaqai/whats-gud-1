@@ -17,11 +17,13 @@ exports.postValidation = Joi.object({
 exports.commentValidation = Joi.object({
   content: Joi.string().required(),
   media: Joi.array().items(Joi.string()), 
+  commentedBy: Joi.custom(objectId, 'Object ID validation').required(),
 });
 
 exports.replyValidation = Joi.object({
   content: Joi.string().required(),
   media: Joi.array().items(Joi.string()), 
+  repliedBy: Joi.custom(objectId, 'Object ID validation').required(),
 });
 
 
