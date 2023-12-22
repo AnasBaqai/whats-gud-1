@@ -8,6 +8,7 @@ const {
   createComment,
   findComment,
   updateComment,
+  getAllComments,
 } = require("../models/commentModel");
 const { createReply, findReply, updateReply } = require("../models/replymodel");
 const { parseBody, generateResponse } = require("../utils");
@@ -273,8 +274,16 @@ exports.getAllCommentsController = async (req, res, next) => {
     const postId = mongoose.Types.ObjectId(req.params.postId);
     const userId = mongoose.Types.ObjectId(req.user.id);
     console.log(postId, userId)
-    const query = getCommentsOfPostQuery(userId, postId);
-    const result = await getAllPosts({ query, page, limit });
+    const post = await findPost({ _id: postId });
+    if (!post)
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "Post not found",
+      });
+    const commentIds = post.comments;
+    console.log(commentIds)
+    const query = getCommentsOfPostQuery(userId, commentIds);
+    const result = await getAllComments({ query, page, limit });
     return generateResponse(
       { comment: result },
       "Comments fetched successfully",

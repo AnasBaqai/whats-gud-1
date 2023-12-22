@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 const { Schema, model } = mongoose;
+const { getMongooseAggregatePaginatedData } = require("../utils");
+const mongoosePaginate = require("mongoose-paginate-v2");
+const aggregatePaginate = require("mongoose-aggregate-paginate-v2");
 
 const commentSchema = new Schema(
   {
@@ -11,6 +14,8 @@ const commentSchema = new Schema(
   },
   { timestamps: true }
 );
+commentSchema.plugin(mongoosePaginate);
+commentSchema.plugin(aggregatePaginate);
 
 const CommentModel = model("Comment", commentSchema);
 

@@ -34,106 +34,74 @@ exports.getPostsQuery = (currentUserId, postId = null) => {
         numberOfLikes: { $size: "$likes" },
         numberOfComments: { $size: "$comments" },
         numberOfShares: { $size: "$shares" },
+        createdAt: 1,
       },
     },
   ];
 };
 
-exports.getCommentsOfPostQuery = (currentUserId, postId) => {
+exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
   return [
+    // Match comments by their IDs
     {
-      $match: { _id: postId },
+      $match: {
+        _id: { $in: commentIds },
+      },
     },
-    {
-      $unwind: "$comments",
-    },
+    // Lookup to get commentedBy user details
     {
       $lookup: {
-        from: "users",
-        localField: "comments.commentedBy",
+        from: "users", // Assuming your users collection is named 'users'
+        localField: "commentedBy",
         foreignField: "_id",
-        as: "comments.commentedBy",
+        as: "commentedBy",
       },
     },
+    // Unwind commentedBy array
     {
-      $unwind: {
-        path: "$comments.commentedBy",
-        preserveNullAndEmptyArrays: true,
-      },
+      $unwind: "$commentedBy",
     },
-    {
-      $lookup: {
-        from: "replies",
-        localField: "comments._id",
-        foreignField: "commentId",
-        as: "comments.replies",
-      },
-    },
-    {
-      $unwind: {
-        path: "$comments.replies",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "comments.replies.repliedBy",
-        foreignField: "_id",
-        as: "comments.replies.repliedBy",
-      },
-    },
-    {
-      $unwind: {
-        path: "$comments.replies.repliedBy",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $group: {
-        _id: "$_id",
-        comments: {
-          $push: "$comments",
-        },
-        // Include other fields from postSchema as needed
-      },
-    },
+    // Project to reshape the output
     {
       $project: {
-        comments: {
+        _id: 1,
+        content: 1,
+        media: 1,
+        createdAt: 1,
+        commentedBy: {
+          _id: "$commentedBy._id",
+          firstName: "$commentedBy.firstName",
+          lastName: "$commentedBy.lastName",
+          email: "$commentedBy.email",
+          image: "$commentedBy.image",
+        },
+        likesCount: { $size: { $ifNull: ["$likes", []] } },
+        isLiked: {
+          $in: [currentUserId, { $ifNull: ["$likes", []] }],
+        },
+        replies: {
           $map: {
-            input: { $ifNull: ["$comments", []] },
-            as: "comment",
+            input: {
+              $ifNull: ["$replies", []],
+            },
+            as: "reply",
             in: {
-              content: "$$comment.content",
-              media: "$$comment.media",
-              commentedBy: "$$comment.commentedBy",
-              isLiked: {
-                $in: [currentUserId, { $ifNull: ["$$comment.likes", []] }],
+              _id: "$$reply._id",
+              content: "$$reply.content",
+              createdAt: "$$reply.createdAt",
+              repliedBy: {
+                $arrayElemAt: ["$$reply.repliedBy", 0],
               },
-              numberOfLikes: { $size: { $ifNull: ["$$comment.likes", []] } },
-              replies: {
-                $map: {
-                  input: { $ifNull: ["$$comment.replies", []] },
-                  as: "reply",
-                  in: {
-                    content: "$$reply.content",
-                    media: "$$reply.media",
-                    repliedBy: "$$reply.repliedBy",
-                    isLikedReply: {
-                      $in: [currentUserId, { $ifNull: ["$$reply.likes", []] }],
-                    },
-                    numberOfLikes: {
-                      $size: { $ifNull: ["$$reply.likes", []] },
-                    },
-                  },
-                },
+              likesCount: { $size: { $ifNull: ["$$reply.likes", []] } },
+              isLikedReply: {
+                $in: [currentUserId, { $ifNull: ["$$reply.likes", []] }],
               },
             },
           },
         },
-        // Include other fields from postSchema as needed
       },
     },
   ];
+  
+  
 };
