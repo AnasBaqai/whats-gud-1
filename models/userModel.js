@@ -35,6 +35,7 @@ const userSchema = new Schema(
     googleId: { type: String },
     facebookId: { type: String },
     appleId: { type: String },
+    gender: { type: String },
     preferredCategories: [
       {
         type: Schema.Types.ObjectId,
