@@ -32,6 +32,7 @@ exports.updateProfileValidation = Joi.object({
     coordinates: Joi.array().items(Joi.number()).required(),
   }).required(),
   isComplete: Joi.boolean().default(true),
+  gender:Joi.string(),
   image: Joi.string().allow(null),
   preferredCategories: Joi.array().items(Joi.string()).allow(null),
   preferredDJ: Joi.array().items(Joi.string()).allow(null),
