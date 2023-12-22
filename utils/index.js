@@ -57,12 +57,12 @@ exports.getReverseGeocodingData = async(latitude, longitude)=> {
 //   }
 // };
 
-// exports.generateResponse = (data, message, res, code = 200) => {
-//   return res.status(code).json({
-//     message,
-//     data,
-//   });
-// };
+exports.generateResponse = (data, message, res, code = 200) => {
+  return res.status(code).json({
+    message,
+    data,
+  });
+};
 
 exports.parseBody = (body) => {
   let obj;
