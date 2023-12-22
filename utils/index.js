@@ -21,7 +21,7 @@ exports.getReverseGeocodingData = async(latitude, longitude)=> {
 
   try {
       const response = await axios.get(url);
-      console.log(response.data);
+    
       if (response.data) {
           // You can extract more specific details as needed
           const address = response.data.address;
