@@ -97,6 +97,9 @@ exports.updateEvent = (query, obj) =>Event.findOneAndUpdate(query, obj, { new: t
 // delete event
 exports.deleteEvent = (query) => Event.findOneAndDelete(query);
 
+//find many events
+exports.findManyEvents = (query) => Event.aggregate(query);
+
 exports.getAllEvents = async ({ query, page, limit, responseKey = "data" }) => {
   const { data, pagination } = await getMongooseAggregatePaginatedData({
     model: Event,

@@ -5,6 +5,7 @@ const {
   createEventController,
   getAllEventsController,
   getEventByIdController,
+  giveEventCount,
 } = require("../controller/eventController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
@@ -28,6 +29,11 @@ class eventAPI {
       "/id/:eventId",
       auth([ROLES.USER, ROLES.ADMIN]),
       getEventByIdController
+    );
+    router.get(
+      "/count",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      giveEventCount
     );
   }
 

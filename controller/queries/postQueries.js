@@ -51,7 +51,7 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
     // Lookup to get commentedBy user details
     {
       $lookup: {
-        from: "users", // Assuming your users collection is named 'users'
+        from: "users",
         localField: "commentedBy",
         foreignField: "_id",
         as: "commentedBy",
@@ -61,12 +61,54 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
     {
       $unwind: "$commentedBy",
     },
+    // Lookup to get replies details
+    {
+      $lookup: {
+        from: "replies", // Replace with your replies collection name
+        localField: "replies",
+        foreignField: "_id",
+        as: "replies",
+      },
+    },
+    // Unwind replies array
+    {
+      $unwind: {
+        path: "$replies",
+        preserveNullAndEmptyArrays: true, // To keep comments without replies
+      },
+    },
+    // Lookup to get repliedBy user details for each reply
+    {
+      $lookup: {
+        from: "users", // Assuming your users collection is named 'users'
+        localField: "replies.repliedBy",
+        foreignField: "_id",
+        as: "replies.repliedBy",
+      },
+    },
+    // Unwind repliedBy array
+    {
+      $unwind: {
+        path: "$replies.repliedBy",
+        preserveNullAndEmptyArrays: true, // To keep replies without repliedBy
+      },
+    },
+    // Group replies back into an array
+    {
+      $group: {
+        _id: "$_id",
+        content: { $first: "$content" },
+        createdAt: { $first: "$createdAt" },
+        commentedBy: { $first: "$commentedBy" },
+        likes: { $first: "$likes" },
+        replies: { $push: "$replies" },
+      },
+    },
     // Project to reshape the output
     {
       $project: {
         _id: 1,
         content: 1,
-        media: 1,
         createdAt: 1,
         commentedBy: {
           _id: "$commentedBy._id",
@@ -81,16 +123,18 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
         },
         replies: {
           $map: {
-            input: {
-              $ifNull: ["$replies", []],
-            },
+            input: "$replies",
             as: "reply",
             in: {
               _id: "$$reply._id",
               content: "$$reply.content",
               createdAt: "$$reply.createdAt",
               repliedBy: {
-                $arrayElemAt: ["$$reply.repliedBy", 0],
+                _id: "$$reply.repliedBy._id",
+                firstName: "$$reply.repliedBy.firstName",
+                lastName: "$$reply.repliedBy.lastName",
+                email: "$$reply.repliedBy.email",
+                image: "$$reply.repliedBy.image",
               },
               likesCount: { $size: { $ifNull: ["$$reply.likes", []] } },
               isLikedReply: {
@@ -102,6 +146,4 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
       },
     },
   ];
-  
-  
 };

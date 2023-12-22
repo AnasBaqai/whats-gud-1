@@ -48,7 +48,7 @@ exports.pushSubCategory = async (req, res, next) => {
     });
   }
 }
-const sampleData =[
+const sampleData1 =[
   {
     "_id": "1",
     "firstName": "John",
@@ -105,6 +105,64 @@ const sampleData =[
   }
 ]
 
+const sampleData2 =[
+  {
+    "_id": "10",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com"
+  },
+  {
+    "_id": "11",
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane.smith@example.com"
+  },
+  {
+    "_id": "12",
+    "firstName": "Mike",
+    "lastName": "Johnson",
+    "email": "mike.johnson@example.com"
+  },
+  {
+    "_id": "13",
+    "firstName": "Sara",
+    "lastName": "Williams",
+    "email": "sara.williams@example.com"
+  },
+  {
+    "_id": "14",
+    "firstName": "Alex",
+    "lastName": "Brown",
+    "email": "alex.brown@example.com"
+  },
+  {
+    "_id": "15",
+    "firstName": "Chris",
+    "lastName": "Miller",
+    "email": "chris.miller@example.com"
+  },
+  {
+    "_id": "16",
+    "firstName": "Emily",
+    "lastName": "Davis",
+    "email": "emily.davis@example.com"
+  },
+  {
+    "_id": "17",
+    "firstName": "Daniel",
+    "lastName": "Clark",
+    "email": "daniel.clark@example.com"
+  },
+  {
+    "_id": "18",
+    "firstName": "Megan",
+    "lastName": "Moore",
+    "email": "megan.moore@example.com"
+  }
+]
+
+
 
 // function to get all categories
 exports.getAllCategories = async (req, res, next) => {
@@ -121,8 +179,8 @@ exports.getAllCategories = async (req, res, next) => {
     // Combine transformed categories and eventTypes
     const result = {
       ...transformedCategories,
-      Streamers: sampleData,
-      DJ: sampleData,
+      Streamers: sampleData1,
+      DJ: sampleData2,
       Events: eventTypes,
     };
 

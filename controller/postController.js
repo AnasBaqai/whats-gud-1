@@ -236,7 +236,7 @@ exports.getAllPostsController = async (req, res, next) => {
     const query = getPostsQuery(currentUserId);
     const result = await getAllPosts({ query, page, limit });
     return generateResponse(
-      { post: result },
+      { post: result.data },
       "Posts fetched successfully",
       res
     );
@@ -255,7 +255,7 @@ exports.getPostById = async (req, res, next) => {
     const userId = mongoose.Types.ObjectId(req.user.id);
     const query = getPostsQuery(userId, postId);
     const result = await getAllPosts({ query, page: 1, limit: 1 });
-    return generateResponse({ post: result }, "Post fetched successfully", res);
+    return generateResponse({ post: result.data }, "Post fetched successfully", res);
   } catch (error) {
     console.log(error.message);
     return next({
@@ -273,7 +273,7 @@ exports.getAllCommentsController = async (req, res, next) => {
     const limit = parseInt(req.query.limit);
     const postId = mongoose.Types.ObjectId(req.params.postId);
     const userId = mongoose.Types.ObjectId(req.user.id);
-    console.log(postId, userId)
+   
     const post = await findPost({ _id: postId });
     if (!post)
       return next({
@@ -281,11 +281,11 @@ exports.getAllCommentsController = async (req, res, next) => {
         message: "Post not found",
       });
     const commentIds = post.comments;
-    console.log(commentIds)
+  
     const query = getCommentsOfPostQuery(userId, commentIds);
     const result = await getAllComments({ query, page, limit });
     return generateResponse(
-      { comment: result },
+      { comment: result.data },
       "Comments fetched successfully",
       res
     );

@@ -2,14 +2,20 @@ const {
   createEvent,
   findEvent,
   getAllEvents,
+  findManyEvents,
 } = require("../models/eventModel");
-const { parseBody, generateResponse } = require("../utils");
+const {
+  parseBody,
+  generateResponse,
+  getReverseGeocodingData,
+} = require("../utils");
 const { STATUS_CODES } = require("../utils/constants");
 const { s3Uploadv3 } = require("../utils/s3Upload");
 const { eventValidation } = require("../validation/eventValidation");
 const mongoose = require("mongoose");
 const { getAllEventsQuery } = require("./queries/eventQueries");
 const { findUser } = require("../models/userModel");
+const { locationValidation } = require("../validation/userValidation");
 
 exports.createEventController = async (req, res, next) => {
   try {
@@ -81,16 +87,58 @@ exports.getAllEventsController = async (req, res, next) => {
 // get event by id
 exports.getEventByIdController = async (req, res, next) => {
   try {
-    const eventId =  mongoose.Types.ObjectId(req.params.eventId);
+    const eventId = mongoose.Types.ObjectId(req.params.eventId);
     const pipeline = getAllEventsQuery(eventId);
     const result = await getAllEvents({
       query: pipeline,
-      page:1,
-      limit:1,
+      page: 1,
+      limit: 1,
       responseKey: "event",
     });
 
     return generateResponse(result, "Event fetched successfully", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+exports.giveEventCount = async (req, res, next) => {
+  try {
+    const body = parseBody(req.body);
+    const { location } = body;
+    const { error } = locationValidation.validate(body);
+    if (error)
+      return next({
+        statusCode: STATUS_CODES.BAD_REQUEST,
+        message: error.message,
+      });
+    const longitude = location.coordinates[0];
+    const latitude = location.coordinates[1];
+    const result = await getReverseGeocodingData(latitude, longitude);
+    console.log(result);
+    // get events count in 7km radius
+    const eventsCount = await findManyEvents([
+      {
+        $geoNear: {
+          near: { type: "Point", coordinates: [longitude, latitude] },
+          distanceField: "dist.calculated",
+          maxDistance: 7000, // 7 km in meters
+          spherical: true,
+        },
+      },
+      {
+        $count: "numberOfEvents",
+      },
+    ]);
+    return generateResponse(
+      { eventNumber:eventsCount[0]?eventsCount[0].numberOfEvents:0,result},
+      "Events count fetched successfully",
+      res
+    );
   } catch (error) {
     console.log(error.message);
     return next({

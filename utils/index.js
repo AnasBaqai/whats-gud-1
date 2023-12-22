@@ -4,6 +4,7 @@ const multer = require("multer");
 const fs = require("fs");
 // const FCM = require('fcm-node');
 const { STATUS_CODES } = require("./constants");
+const axios = require('axios');
 const moment = require("moment");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -15,13 +16,53 @@ const transporter = nodemailer.createTransport({
     pass:process.env.GMAIL_PASS,
   },
 });
+exports.getReverseGeocodingData = async(latitude, longitude)=> {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&language=en`;
 
-exports.generateResponse = (data, message, res, code = 200) => {
-  return res.status(code).json({
-    message,
-    data,
-  });
-};
+  try {
+      const response = await axios.get(url);
+      console.log(response.data);
+      if (response.data) {
+          // You can extract more specific details as needed
+          const address = response.data.address;
+          return {
+              city: address.city || address.town || address.village,
+              state: address.state,
+              country: address.country
+          };
+      }
+      return 'No address found';
+  } catch (error) {
+      console.error('Error during reverse geocoding:', error);
+      return 'Error retrieving address';
+  }
+}
+
+// exports.getReverseGeocodingData = async (latitude, longitude) => {
+//   const apiKey ='AIzaSyBYwo6gudbgLPb_c7E78Gw-l26uVSqkgbY'; // Replace with your actual API key
+//   const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}&language=en`;
+
+//   try {
+//       const response = await axios.get(url);
+//       console.log(response);
+//       if (response.data && response.data.results && response.data.results.length > 0) {
+//           // Extract more specific details as needed
+//           const address = response.data.results[0];
+//           return address.formatted_address; // Or other specific components
+//       }
+//       return 'No address found';
+//   } catch (error) {
+//       console.error('Error during reverse geocoding:', error);
+//       return 'Error retrieving address';
+//   }
+// };
+
+// exports.generateResponse = (data, message, res, code = 200) => {
+//   return res.status(code).json({
+//     message,
+//     data,
+//   });
+// };
 
 exports.parseBody = (body) => {
   let obj;
