@@ -178,10 +178,10 @@ exports.getAllCategories = async (req, res, next) => {
     }, {});    
     // Combine transformed categories and eventTypes
     const result = {
-      ...transformedCategories,
+      Events: eventTypes,
       Streamers: sampleData1,
       DJ: sampleData2,
-      Events: eventTypes,
+      ...transformedCategories,
     };
 
     return generateResponse(result, "Categories fetched successfully", res);
