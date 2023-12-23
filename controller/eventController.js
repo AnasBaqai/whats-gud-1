@@ -119,7 +119,6 @@ exports.giveEventCount = async (req, res, next) => {
     const longitude = location.coordinates[0];
     const latitude = location.coordinates[1];
     const result = await getReverseGeocodingData(latitude, longitude);
-    console.log(result);
     // get events count in 7km radius
     const eventsCount = await findManyEvents([
       {
