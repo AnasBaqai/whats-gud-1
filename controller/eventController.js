@@ -49,13 +49,19 @@ exports.createEventController = async (req, res, next) => {
 
 exports.getAllEventsController = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+    const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
     const userId = mongoose.Types.ObjectId(req.user.id);
     const user = await findUser({ _id: userId });
 
-    const mainCategoryId = mongoose.Types.ObjectId(req.query.mainCategoryId);
-    const pipeline = getAllEventsQuery(mainCategoryId);
+    let pipeline;
+    if (req.query.mainCategoryId) {
+      const mainCategoryId = mongoose.Types.ObjectId(req.query.mainCategoryId);
+      pipeline = getAllEventsQuery(mainCategoryId); // For specific category
+    } else {
+      pipeline = getAllEventsQuery(); // For all events
+    }
+
     pipeline.unshift({
       $geoNear: {
         near: { type: "Point", coordinates: user.location.coordinates },
@@ -64,12 +70,14 @@ exports.getAllEventsController = async (req, res, next) => {
         spherical: true,
       },
     });
+
     const result = await getAllEvents({
       query: pipeline,
       page,
       limit,
       responseKey: "events",
     });
+
     return generateResponse(
       { eventType: result },
       "Events fetched successfully",
@@ -83,6 +91,7 @@ exports.getAllEventsController = async (req, res, next) => {
     });
   }
 };
+
 
 // get event by id
 exports.getEventByIdController = async (req, res, next) => {
