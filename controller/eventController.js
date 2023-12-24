@@ -134,10 +134,43 @@ exports.giveEventCount = async (req, res, next) => {
       },
     ]);
     return generateResponse(
-      { eventNumber:eventsCount[0]?eventsCount[0].numberOfEvents:0,result},
+      {
+        eventNumber: eventsCount[0] ? eventsCount[0].numberOfEvents : 0,
+        result,
+      },
       "Events count fetched successfully",
       res
     );
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// function to fav the event
+exports.favEventController = async (req, res, next) => {
+  try {
+    const eventId = mongoose.Types.ObjectId(req.params.eventId);
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const event = await findEvent({ _id: eventId });
+    if (!event) {
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "Event not found",
+      });
+    }
+
+    const isFav = event.favorites.includes(userId);
+    if (isFav) {
+      event.favorites.pull(userId);
+    } else {
+      event.favorites.push(userId);
+    }
+    await event.save();
+    return generateResponse(event, "Event updated successfully", res);
   } catch (error) {
     console.log(error.message);
     return next({

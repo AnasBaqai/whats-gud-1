@@ -16,6 +16,30 @@ const transporter = nodemailer.createTransport({
     pass:process.env.GMAIL_PASS,
   },
 });
+
+
+// exports.getReverseGeocodingData = async (latitude, longitude) => {
+//   const accessToken = 'sk.eyJ1IjoiYW5hc2JhcWFpOSIsImEiOiJjbHFqYXdrZG4wM3lsMnJwOWJ2eTZ0bnZ4In0.5RpKwZmTdhyffbqFF473GA'; // Replace with your Mapbox access token
+//   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${accessToken}&language=en`;
+
+//   try {
+//       const response = await axios.get(url);
+//       console.log(response.data.features[0]);
+//       if (response.data && response.data.features && response.data.features.length > 0) {
+//           // The most relevant place is usually the first feature
+//           const place = response.data.features[0];
+//           const placeName = place.place_name;
+
+//           return {
+//               address: placeName, // You can also parse more specific details if needed
+//           };
+//       }
+//       return 'No address found';
+//   } catch (error) {
+//       console.error('Error during reverse geocoding:', error);
+//       return 'Error retrieving address';
+//   }
+// }
 exports.getReverseGeocodingData = async(latitude, longitude)=> {
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&language=en`;
 

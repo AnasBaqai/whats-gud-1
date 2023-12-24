@@ -73,6 +73,7 @@ const eventSchema = new Schema(
     },
     capacity: { type: Number, required: true },
     isApproved: { type: Boolean, default: false },
+    favorites: [{ type: Schema.Types.ObjectId, ref: "User" }],
     
     // Additional fields like 'created_at', 'updated_at', or 'isApproved' can be added as needed
   },

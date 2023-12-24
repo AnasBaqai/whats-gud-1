@@ -136,3 +136,24 @@ exports.updateLocation = async (req, res, next) => {
     });
   }
 };
+
+
+exports.getUserProfile = async (req, res, next) => { 
+  try {
+    const userId = req.user.id;
+    const user = await findUser({ _id: mongoose.Types.ObjectId(userId) });
+    if (!user) {
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "User not found",
+      });
+    }
+    return generateResponse(user, "User profile fetched", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}
