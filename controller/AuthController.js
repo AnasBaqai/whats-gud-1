@@ -14,6 +14,8 @@ const {
   loginUserValidation,
 } = require("../validation/authValidation");
 const { createRelation, findRelation } = require("../models/relationModel");
+const Mailer = require("../utils/mailer");
+const { default: mongoose } = require("mongoose");
 const saltRounds = parseInt(process.env.SALT);
 
 exports.googleLogin = async (accessToken, refreshToken, profile, done) => {
@@ -131,6 +133,12 @@ exports.loginUser = async (req, res, next) => {
         message: "User does not exist",
       });
     }
+    if (!user.isActive) {
+      return next({
+        statusCode: STATUS_CODES.UNAUTHORIZED,
+        message: "User is not verified",
+      });
+    }
     // bcrypt.compare is CPU-intensive but necessary for security
     if (!(await bcrypt.compare(password, user.password))) {
       return next({
@@ -203,8 +211,13 @@ exports.registerUser = async (req, res, next) => {
 
     // Optionally, create relations asynchronously if it's not required to wait for its completion
     createRelation({ user: newUser._id });
-
-
+    const vericationUrl = `https://whatsgud.cyclic.app/api/auth/verify?userId=${newUser._id}`;
+    const message = 'Thank you for signing up, please verify your email by clicking the link below \n\n' + vericationUrl + '\n\n'
+    Mailer.sendEmail({
+      email: newUser.email,
+      subject: "email verification",
+      message: message,
+    });
     // Return the token and the user object
     return generateResponse(
       { accessToken: token, user: newUser },
@@ -213,6 +226,38 @@ exports.registerUser = async (req, res, next) => {
     );
   } catch (error) {
     console.error(error); // Consider more selective logging in production
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+exports.verifyUser = async (req, res, next) => {
+  try {
+    const { userId } = req.query;
+    const user = await findUser({ _id: mongoose.Types.ObjectId( userId) });
+    if (!user) {
+      return res.render("index", {
+        mainMessage: "sorry",
+        message: "account not found",
+      });
+    }
+    if (user.isActive) {
+      return res.render("index", {
+        mainMessage: "YOU CAN LOGIN NOW",
+        message: "your account is already verified",
+      });
+    }
+    user.isActive = true;
+    await user.save();
+    console.log(user)
+    return res.render("index", {
+      mainMessage: "Your account is verified",
+      message: "you can login now",
+    });
+  } catch (error) {
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
