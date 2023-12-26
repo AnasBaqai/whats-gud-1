@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 exports.getReverseGeocodingData = async (latitude, longitude) => {
-  const accessToken = 'sk.eyJ1IjoiYW5hc2JhcWFpOSIsImEiOiJjbHFqYXdrZG4wM3lsMnJwOWJ2eTZ0bnZ4In0.5RpKwZmTdhyffbqFF473GA'; // Replace with your Mapbox access token
+  const accessToken = process.env.MAP_BOX_API_KEY; // Replace with your Mapbox access token
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${accessToken}&language=en`;
 
   try {
@@ -75,6 +75,27 @@ exports.getReverseGeocodingData = async (latitude, longitude) => {
 //       return 'Error retrieving address';
 //   }
 // }
+
+exports.getWeatherByCoordinates = async (latitude, longitude) => {
+  const apiKey =process.env.WEATHER_API_KEY; // Replace with your API key
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
+  try {
+    const response = await axios.get(url);
+    const data = response.data;
+    return {
+      temperature: data.main.temp,
+      generalCondition: data.weather[0].main, // General weather condition (e.g., Rain, Snow)
+      weather: data.weather[0].description,
+      humidity: data.main.humidity,
+      windSpeed: data.wind.speed,
+      // Add more fields as needed
+    };
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    return null;
+  }
+};
 
 
 exports.generateResponse = (data, message, res, code = 200) => {

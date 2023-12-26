@@ -31,7 +31,7 @@ class eventAPI {
       auth([ROLES.USER, ROLES.ADMIN]),
       getEventByIdController
     );
-    router.get(
+    router.post(
       "/count",
       auth([ROLES.USER, ROLES.ADMIN]),
       giveEventCount

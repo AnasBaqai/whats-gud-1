@@ -98,10 +98,19 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
       $group: {
         _id: "$_id",
         content: { $first: "$content" },
+        media: { $first: "$media" }, 
         createdAt: { $first: "$createdAt" },
         commentedBy: { $first: "$commentedBy" },
         likes: { $first: "$likes" },
-        replies: { $push: "$replies" },
+        replies: {
+          $push: {
+            $cond: [
+              { $eq: ["$replies", {}] }, // Check if replies is an empty object
+              "$$REMOVE",               // Remove it if true
+              "$replies"                // Otherwise, keep the reply
+            ]
+          }
+        }
       },
     },
     // Project to reshape the output
@@ -109,6 +118,7 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
       $project: {
         _id: 1,
         content: 1,
+        media: 1,
         createdAt: 1,
         commentedBy: {
           _id: "$commentedBy._id",
@@ -128,6 +138,7 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
             in: {
               _id: "$$reply._id",
               content: "$$reply.content",
+              media: "$$reply.media",
               createdAt: "$$reply.createdAt",
               repliedBy: {
                 _id: "$$reply.repliedBy._id",
