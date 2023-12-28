@@ -54,6 +54,11 @@ const userSchema = new Schema(
         ref: "User",
       },
     ],
+    address:{
+      city:{type:String, default:null },
+      state:{type:String, default:null},
+      country:{type:String, default:null},
+    },
   },
   { timestamps: true }
 );

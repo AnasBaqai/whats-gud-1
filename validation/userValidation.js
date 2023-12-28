@@ -30,7 +30,7 @@ exports.updateProfileValidation = Joi.object({
   location: Joi.object({
     type: Joi.string().valid("Point").default("Point"),
     coordinates: Joi.array().items(Joi.number()).required(),
-  }).required(),
+  }),
   isComplete: Joi.boolean().default(true),
   gender:Joi.string(),
   image: Joi.string().allow(null),

@@ -25,11 +25,13 @@ const eventSchema = new Schema(
       id: { 
         type: Schema.Types.ObjectId, 
         ref: 'User', 
-        required: function() { return !this.artistDJ.name; }  
+        // required: function() { return !this.artistDJ.name; } 
+        required: false 
       },
       name: { 
         type: String, 
-        required: function() { return !this.artistDJ.id; } // Name is required if no ID is provided
+        // required: function() { return !this.artistDJ.id; } // Name is required if no ID is provided
+        required: false
       }
     },
     description: {

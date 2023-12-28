@@ -24,6 +24,7 @@ exports.createProfile = async (req, res, next) => {
     preferredCategories,
     preferredDJ,
     prefferedStreamers,
+    address
   } = body;
   const { error } = updateProfileValidation.validate(body);
   if (error) {
@@ -34,15 +35,14 @@ exports.createProfile = async (req, res, next) => {
   }
 
   // Validate and parse longitude and latitude
-  const [longitude, latitude] = location.coordinates.map((coord) =>
+  let longitude = 0;
+  let latitude = 0;
+  if(location){
+   [longitude, latitude] = location?.coordinates?.map((coord) =>
     parseFloat(coord)
   );
-  if (isNaN(longitude) || isNaN(latitude)) {
-    return next({
-      statusCode: STATUS_CODES.BAD_REQUEST,
-      message: "Invalid longitude or latitude values.",
-    });
-  }
+}
+  console.log(longitude, latitude)
 
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
@@ -63,6 +63,7 @@ exports.createProfile = async (req, res, next) => {
       preferredCategories: preferredCategories || [],
       preferredDJ: preferredDJ || [],
       prefferedStreamers: prefferedStreamers || [],
+      address:address || {city:null, state:null, country:null}
     };
 
     const updatedUser = await updateUser({ _id: userId }, updateData).exec();
