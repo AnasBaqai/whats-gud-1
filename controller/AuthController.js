@@ -210,10 +210,10 @@ exports.registerUser = async (req, res, next) => {
     res.setHeader("authorization", token);
 
     // Optionally, create relations asynchronously if it's not required to wait for its completion
-    createRelation({ user: newUser._id });
+   await  createRelation({ user: newUser._id });
     const vericationUrl = `https://whatsgud.cyclic.app/api/auth/verify?userId=${newUser._id}`;
     const message = 'Thank you for signing up, please verify your email by clicking the link below \n\n' + vericationUrl + '\n\n'
-    Mailer.sendEmail({
+    await Mailer.sendEmail({
       email: newUser.email,
       subject: "email verification",
       message: message,
@@ -251,7 +251,6 @@ exports.verifyUser = async (req, res, next) => {
     }
     user.isActive = true;
     await user.save();
-    console.log(user)
     return res.render("index", {
       mainMessage: "Your account is verified",
       message: "you can login now",
