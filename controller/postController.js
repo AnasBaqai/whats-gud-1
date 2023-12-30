@@ -236,7 +236,7 @@ exports.getAllPostsController = async (req, res, next) => {
     const query = getPostsQuery(currentUserId);
     const result = await getAllPosts({ query, page, limit });
     return generateResponse(
-      { post: result.data },
+      { post: result },
       "Posts fetched successfully",
       res
     );
@@ -285,7 +285,7 @@ exports.getAllCommentsController = async (req, res, next) => {
     const query = getCommentsOfPostQuery(userId, commentIds);
     const result = await getAllComments({ query, page, limit });
     return generateResponse(
-      { comment: result.data },
+      { comment: result },
       "Comments fetched successfully",
       res
     );
