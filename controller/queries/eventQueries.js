@@ -1,4 +1,4 @@
-exports.getAllEventsQuery = (ID = null) => {
+exports.getAllEventsQuery = (ID = null,currentUserId) => {
   let matchCondition;
 
   if (ID) {
@@ -166,6 +166,14 @@ exports.getAllEventsQuery = (ID = null) => {
         creator: 1,
         capacity: 1,
         hotnessScore: 1,
+        isfav: {
+          $in: [
+            currentUserId,
+            {
+              $ifNull: ["$favorites", []] // Provide an empty array as the default value if $likes is null
+            }
+          ]
+        },
         ticketsSold: 1,
         createdAt: 1,
       },
