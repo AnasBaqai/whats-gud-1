@@ -41,5 +41,5 @@ exports.getAllPosts = async ({ query, page, limit, responseKey = "data" }) => {
     limit,
   });
 
-  return {data, pagination };
+  return {[responseKey]:data, pagination };
 };

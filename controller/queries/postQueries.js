@@ -158,3 +158,38 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
     },
   ];
 };
+
+exports.getLikedUsersOfPostQuery = (postId) => {
+  return [
+    { $match: { _id: postId } }, // Match the specific post by ID
+    {
+      $lookup: {
+        from: 'users', // Assuming your User collection is named 'users'
+        localField: 'likes',
+        foreignField: '_id',
+        as: 'likedUsers',
+      },
+    },
+    {
+      $project: {
+        _id: 0, // Exclude the post ID from the result
+        likes: '$likedUsers', // Rename the field to 'likes'
+      },
+    },
+    {
+      $unwind: '$likes', // Unwind the array to separate each liked user
+    },
+    {
+      $replaceRoot: { newRoot: '$likes' }, // Replace the root with the liked user details
+    },
+    {
+      $project: {
+        '_id': 1,
+        'firstName': 1,
+        'lastName': 1,
+        'email': 1,
+        'image': 1,
+      },
+    },
+  ];
+};

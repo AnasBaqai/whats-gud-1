@@ -10,7 +10,8 @@ const {
   likeReplyController,
   getAllPostsController,
   getPostById,
-  getAllCommentsController
+  getAllCommentsController,
+  getAllLikesController,
 } = require("../controller/postController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
@@ -65,6 +66,11 @@ class postAPI {
       "/:postId/comments",
       auth([ROLES.USER, ROLES.ADMIN]),
       getAllCommentsController
+    );
+    router.get(
+      "/:postId/likes",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      getAllLikesController
     );
   }
 

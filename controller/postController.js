@@ -19,7 +19,11 @@ const {
   replyValidation,
 } = require("../validation/postValidation");
 const mongoose = require("mongoose");
-const { getPostsQuery, getCommentsOfPostQuery } = require("./queries/postQueries");
+const {
+  getPostsQuery,
+  getCommentsOfPostQuery,
+  getLikedUsersOfPostQuery,
+} = require("./queries/postQueries");
 
 // create post
 exports.createPostController = async (req, res, next) => {
@@ -255,7 +259,11 @@ exports.getPostById = async (req, res, next) => {
     const userId = mongoose.Types.ObjectId(req.user.id);
     const query = getPostsQuery(userId, postId);
     const result = await getAllPosts({ query, page: 1, limit: 1 });
-    return generateResponse({ post: result.data }, "Post fetched successfully", res);
+    return generateResponse(
+      { post: result.data },
+      "Post fetched successfully",
+      res
+    );
   } catch (error) {
     console.log(error.message);
     return next({
@@ -268,12 +276,12 @@ exports.getPostById = async (req, res, next) => {
 // get all comments of a post
 
 exports.getAllCommentsController = async (req, res, next) => {
-  try{
+  try {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
     const postId = mongoose.Types.ObjectId(req.params.postId);
     const userId = mongoose.Types.ObjectId(req.user.id);
-   
+
     const post = await findPost({ _id: postId });
     if (!post)
       return next({
@@ -281,7 +289,7 @@ exports.getAllCommentsController = async (req, res, next) => {
         message: "Post not found",
       });
     const commentIds = post.comments;
-  
+
     const query = getCommentsOfPostQuery(userId, commentIds);
     const result = await getAllComments({ query, page, limit });
     return generateResponse(
@@ -289,8 +297,33 @@ exports.getAllCommentsController = async (req, res, next) => {
       "Comments fetched successfully",
       res
     );
-  }catch(err){
-    console.log(err.message)
+  } catch (err) {
+    console.log(err.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// get all likes users of a post
+
+exports.getAllLikesController = async (req, res, next) => {
+  try {
+    const postId = mongoose.Types.ObjectId(req.params.postId);
+    const post = await findPost({ _id: postId });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    if (!post)
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "Post not found",
+      });
+    const pipeline = getLikedUsersOfPostQuery(postId);
+    const users = await getAllPosts({ query: pipeline, page, limit,responseKey:"likedUser" });
+    return generateResponse(users, "liked Users fetched successfully", res);
+  } catch (err) {
+    console.log(err.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
