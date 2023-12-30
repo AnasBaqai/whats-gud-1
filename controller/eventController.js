@@ -57,9 +57,9 @@ exports.getAllEventsController = async (req, res, next) => {
     let pipeline;
     if (req.query.mainCategoryId) {
       const mainCategoryId = mongoose.Types.ObjectId(req.query.mainCategoryId);
-      pipeline = getAllEventsQuery(mainCategoryId); // For specific category
+      pipeline = getAllEventsQuery(mainCategoryId, userId); // For specific category
     } else {
-      pipeline = getAllEventsQuery(); // For all events
+      pipeline = getAllEventsQuery(null, userId); // For all events
     }
 
     pipeline.unshift({
@@ -92,12 +92,12 @@ exports.getAllEventsController = async (req, res, next) => {
   }
 };
 
-
 // get event by id
 exports.getEventByIdController = async (req, res, next) => {
   try {
     const eventId = mongoose.Types.ObjectId(req.params.eventId);
-    const pipeline = getAllEventsQuery(eventId);
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const pipeline = getAllEventsQuery(eventId, userId);
     const result = await getAllEvents({
       query: pipeline,
       page: 1,
@@ -179,7 +179,11 @@ exports.favEventController = async (req, res, next) => {
       event.favorites.push(userId);
     }
     await event.save();
-    return generateResponse(event, "Event updated successfully", res);
+    return generateResponse(
+      { isFav: !isFav },
+      "Event updated successfully",
+      res
+    );
   } catch (error) {
     console.log(error.message);
     return next({
