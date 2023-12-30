@@ -311,6 +311,7 @@ exports.getAllCommentsController = async (req, res, next) => {
 exports.getAllLikesController = async (req, res, next) => {
   try {
     const postId = mongoose.Types.ObjectId(req.params.postId);
+    const userId = mongoose.Types.ObjectId(req.user.id);
     const post = await findPost({ _id: postId });
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -319,7 +320,7 @@ exports.getAllLikesController = async (req, res, next) => {
         statusCode: STATUS_CODES.NOT_FOUND,
         message: "Post not found",
       });
-    const pipeline = getLikedUsersOfPostQuery(postId);
+    const pipeline = getLikedUsersOfPostQuery(postId,userId);
     const users = await getAllPosts({ query: pipeline, page, limit,responseKey:"likedUser" });
     return generateResponse(users, "liked Users fetched successfully", res);
   } catch (err) {

@@ -159,37 +159,154 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
   ];
 };
 
-exports.getLikedUsersOfPostQuery = (postId) => {
-  return [
-    { $match: { _id: postId } }, // Match the specific post by ID
+exports.getLikedUsersOfPostQuery = (postId,currentUserId) => {
+  return[
+    { $match: { _id: postId } },
+    {
+      $addFields: {
+        likes: {
+          $map: {
+            input: "$likes",
+            as: "like",
+            in: {
+              like: "$$like",
+              idx: { $indexOfArray: ["$likes", "$$like"] }
+            }
+          }
+        }
+      }
+    },
     {
       $lookup: {
-        from: 'users', // Assuming your User collection is named 'users'
-        localField: 'likes',
+        from: 'users',
+        localField: 'likes.like',
         foreignField: '_id',
         as: 'likedUsers',
       },
     },
     {
-      $project: {
-        _id: 0, // Exclude the post ID from the result
-        likes: '$likedUsers', // Rename the field to 'likes'
+      $unwind: '$likedUsers',
+    },
+    {
+      $set: {
+        likedUsers: {
+          $mergeObjects: [
+            { $arrayElemAt: ["$likes", { $indexOfArray: ["$likes.like", "$likedUsers._id"] }] },
+            "$likedUsers"
+          ]
+        }
+      }
+    },
+    {
+      $sort: { "likedUsers.idx": 1 }
+    },
+    {
+      $lookup: {
+        from: 'relations',
+        let: { likedUserId: '$likedUsers._id', currentUserId: currentUserId },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ['$user', '$$currentUserId'] },
+                  { $in: ['$$likedUserId', '$following'] },
+                ],
+              },
+            },
+          },
+        ],
+        as: 'relation',
       },
     },
     {
-      $unwind: '$likes', // Unwind the array to separate each liked user
+      $addFields: {
+        "likedUsers.isFollowing": {
+          $cond: {
+            if: { $eq: ['$likedUsers._id', currentUserId] },
+            then: '$$REMOVE',
+            else: { $cond: { if: { $gt: [{ $size: '$relation' }, 0] }, then: true, else: false } },
+          },
+        },
+      },
     },
     {
-      $replaceRoot: { newRoot: '$likes' }, // Replace the root with the liked user details
+      $replaceRoot: { newRoot: '$likedUsers' },
+    },
+    {
+      $addFields: {
+        idx: '$$REMOVE' // Remove the idx field here
+      }
     },
     {
       $project: {
-        '_id': 1,
-        'firstName': 1,
-        'lastName': 1,
-        'email': 1,
-        'image': 1,
+        _id: 1,
+        firstName: 1,
+        lastName: 1,
+        email: 1,
+        image: 1,
+        isFollowing: 1,
       },
     },
-  ];
+    // ... rest of your pipeline ...
+  ]
+  
 };
+ // pipeline with isfollowing coming with current userid
+// [
+//   { $match: { _id: postId } }, // Match the specific post by ID
+//   {
+//     $lookup: {
+//       from: 'users', // Assuming your User collection is named 'users'
+//       localField: 'likes',
+//       foreignField: '_id',
+//       as: 'likedUsers',
+//     },
+//   },
+//   {
+//     $project: {
+//       _id: 0, // Exclude the post ID from the result
+//       likes: '$likedUsers', // Rename the field to 'likes'
+//     },
+//   },
+//   {
+//     $unwind: '$likes', // Unwind the array to separate each liked user
+//   },
+//   {
+//     $replaceRoot: { newRoot: '$likes' }, // Replace the root with the liked user details
+//   },
+//   {
+//     $lookup: {
+//       from: 'relations', // Assuming your Relation model is named 'relations'
+//       let: { likedUserId: '$_id', currentUserId: currentUserId },
+//       pipeline: [
+//         {
+//           $match: {
+//             $expr: {
+//               $and: [
+//                 { $eq: ['$user', '$$currentUserId'] },
+//                 { $in: ['$$likedUserId', '$following'] },
+//               ],
+//             },
+//           },
+//         },
+//       ],
+//       as: 'relation',
+//     },
+//   },
+//   {
+//     $addFields: {
+//       isFollowing: { $cond: { if: { $gt: [{ $size: '$relation' }, 0] }, then: true, else: false } },
+//     },
+//   },
+//   {
+//     $project: {
+//       _id: 1,
+//       firstName: 1,
+//       lastName: 1,
+//       email: 1,
+//       image: 1,
+//       isFollowing: 1,
+//     },
+//   },
+// ]
