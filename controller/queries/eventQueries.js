@@ -1,17 +1,24 @@
-exports.getAllEventsQuery = (ID = null,currentUserId) => {
+exports.getAllEventsQuery = (ID = null, currentUserId) => {
   let matchCondition;
 
+  const currentDate = new Date();
   if (ID) {
     // ID is provided
     matchCondition = {
-      $or: [
-        { "category.main": ID },
-        { _id: ID }, // Assuming mainCategoryId is the general ID you want to match
+      $and: [
+        {
+          dateAndTime: { $gte: currentDate }, // Match events with dateAndTime from today onwards
+        },
+        {
+          $or: [{ "category.main": ID }, { _id: ID }],
+        },
       ],
     };
   } else {
-    // ID is not provided, match all documents
-    matchCondition = {};
+    // ID is not provided, match all future documents
+    matchCondition = {
+      dateAndTime: { $gte: currentDate }, // Match events with dateAndTime from today onwards
+    };
   }
 
   return [
@@ -143,7 +150,7 @@ exports.getAllEventsQuery = (ID = null,currentUserId) => {
         // "category.sub": "$category.sub.name",
         "category.main": {
           id: "$category.main._id",
-          name: "$category.main.name"
+          name: "$category.main.name",
         },
         "category.sub": {
           $map: {
@@ -151,9 +158,9 @@ exports.getAllEventsQuery = (ID = null,currentUserId) => {
             as: "sub",
             in: {
               id: "$$sub._id",
-              name: "$$sub.name"
-            }
-          }
+              name: "$$sub.name",
+            },
+          },
         },
         eventName: 1,
         artistDJ: 1,
@@ -170,9 +177,9 @@ exports.getAllEventsQuery = (ID = null,currentUserId) => {
           $in: [
             currentUserId,
             {
-              $ifNull: ["$favorites", []] // Provide an empty array as the default value if $likes is null
-            }
-          ]
+              $ifNull: ["$favorites", []], // Provide an empty array as the default value if $likes is null
+            },
+          ],
         },
         ticketsSold: 1,
         createdAt: 1,
