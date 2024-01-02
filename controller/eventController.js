@@ -79,7 +79,7 @@ exports.getAllEventsController = async (req, res, next) => {
     });
 
     return generateResponse(
-      { eventType: result },
+        result ,
       "Events fetched successfully",
       res
     );

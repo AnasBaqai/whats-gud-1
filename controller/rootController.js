@@ -9,10 +9,10 @@ exports.DefaultHandler = (req, res, next) => {
 
 exports.getWeather = async (req, res, next) => {
   try {
-    const {location} = req.body;
+    const {location,date} = req.body;
     const longitude = location.coordinates[0];
     const latitude = location.coordinates[1];
-    const weather = await getWeatherByCoordinates(latitude, longitude);
+    const weather = await getWeatherByCoordinates(latitude, longitude,date);
     return generateResponse(weather, "Weather fetched successfully", res);
   } catch (error) {
     console.log(error.message);

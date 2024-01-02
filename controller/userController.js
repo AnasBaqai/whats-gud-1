@@ -89,9 +89,9 @@ exports.uploadProfileImage = async (req, res, next) => {
 
   const userId = req.user.id;
   const user = await findUser({ _id: userId });
-  if (user.image) {
-    await deleteImage([user.image]);
-  }
+  // if (user.image) {
+  //   await deleteImage([user.image]);
+  // }
 
   await updateUser({ _id: userId }, { image: filePath[0] });
 
@@ -152,6 +152,22 @@ exports.getUserProfile = async (req, res, next) => {
     return generateResponse(user, "User profile fetched", res);
   } catch (error) {
     console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}
+
+// return new access token 
+exports.createAccessToken = async (req, res, next) => {
+  try{
+    const user = req.user;
+    console.log(user)
+    const token = generateToken(user);
+    res.setHeader("authorization", token);
+    return generateResponse(token, "Access token created", res);
+  }catch(err){
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",

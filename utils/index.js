@@ -76,27 +76,42 @@ exports.getReverseGeocodingData = async (latitude, longitude) => {
 //   }
 // }
 
-exports.getWeatherByCoordinates = async (latitude, longitude) => {
-  const apiKey =process.env.WEATHER_API_KEY; // Replace with your API key
-  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+exports.getWeatherByCoordinates = async (latitude, longitude, date) => {
+  const apiKey = process.env.WEATHER_API_KEY; // Replace with your API key
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
 
   try {
     const response = await axios.get(url);
-    const data = response.data;
+    const forecastData = response.data;
+
+    // Convert the desired date to the same format used in the API response
+    const desiredDate = new Date(date).toISOString().split('T')[0];
+
+    // Find the closest time slot to 12:00 PM on the desired date
+    const dailyForecast = forecastData.list.find(forecast => {
+      const forecastDate = new Date(forecast.dt * 1000).toISOString().split('T')[0];
+      const forecastTime = new Date(forecast.dt * 1000).toISOString().split('T')[1];
+      return forecastDate === desiredDate && forecastTime.startsWith('12:00:00');
+    });
+
+    if (!dailyForecast) {
+      throw new Error('Forecast for the desired date is not available.');
+    }
+
     return {
-      temperature: data.main.temp,
-      generalCondition: data.weather[0].main, // General weather condition (e.g., Rain, Snow)
-      weather: data.weather[0].description,
-      humidity: data.main.humidity,
-      windSpeed: data.wind.speed,
+      date: desiredDate,
+      temperature: dailyForecast.main.temp,
+      generalCondition: dailyForecast.weather[0].main,
+      weather: dailyForecast.weather[0].description,
+      humidity: dailyForecast.main.humidity,
+      windSpeed: dailyForecast.wind.speed,
       // Add more fields as needed
     };
   } catch (error) {
-    console.error('Error fetching weather data:', error);
+    console.error('Error fetching weather forecast data:', error);
     return null;
   }
 };
-
 
 exports.generateResponse = (data, message, res, code = 200) => {
   return res.status(code).json({
