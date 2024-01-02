@@ -1,13 +1,30 @@
-exports.getAllEventsQuery = (ID) => {
+exports.getAllEventsQuery = (ID = null, currentUserId) => {
+  let matchCondition;
+
+  const currentDate = new Date();
+  if (ID) {
+    // ID is provided
+    matchCondition = {
+      $and: [
+        {
+          dateAndTime: { $gte: currentDate }, // Match events with dateAndTime from today onwards
+        },
+        {
+          $or: [{ "category.main": ID }, { _id: ID }],
+        },
+      ],
+    };
+  } else {
+    // ID is not provided, match all future documents
+    matchCondition = {
+      dateAndTime: { $gte: currentDate }, // Match events with dateAndTime from today onwards
+    };
+  }
+
   return [
     // Match events with the specified main category ID
     {
-      $match: {
-        $or: [
-          { "category.main": ID },
-          { _id: ID }, // Assuming mainCategoryId is the general ID you want to match
-        ],
-      },
+      $match: matchCondition,
     },
     // Populate the main category
     {
@@ -38,27 +55,29 @@ exports.getAllEventsQuery = (ID) => {
     },
     {
       $lookup: {
-        from: 'tickets', // This should be the actual name of the tickets collection
-        localField: '_id', // The local field on the event document
-        foreignField: 'eventId', // The field on the ticket document
-        as: 'soldTickets' // The name for the resulting array
-      }
+        from: "tickets", // This should be the actual name of the tickets collection
+        localField: "_id", // The local field on the event document
+        foreignField: "eventId", // The field on the ticket document
+        as: "soldTickets", // The name for the resulting array
+      },
     },
     {
       $addFields: {
-        ticketsSold: { $size: '$soldTickets' }
-      }
+        ticketsSold: { $size: "$soldTickets" },
+      },
     },
     {
       $addFields: {
         hotnessScore: {
           $cond: {
-            if: { $gt: ['$capacity', 0] }, // Avoid division by zero
-            then: { $multiply: [{ $divide: ['$ticketsSold', '$capacity'] }, 100] },
-            else: 0
-          }
-        }
-      }
+            if: { $gt: ["$capacity", 0] }, // Avoid division by zero
+            then: {
+              $multiply: [{ $divide: ["$ticketsSold", "$capacity"] }, 100],
+            },
+            else: 0,
+          },
+        },
+      },
     },
     // Populate artistDJ if it contains the ID
     {
@@ -127,8 +146,22 @@ exports.getAllEventsQuery = (ID) => {
     {
       $project: {
         // Include fields that you need in the final output
-        "category.main": "$category.main.name",
-        "category.sub": "$category.sub.name",
+        // "category.main": "$category.main.name",
+        // "category.sub": "$category.sub.name",
+        "category.main": {
+          id: "$category.main._id",
+          name: "$category.main.name",
+        },
+        "category.sub": {
+          $map: {
+            input: "$category.sub",
+            as: "sub",
+            in: {
+              id: "$$sub._id",
+              name: "$$sub.name",
+            },
+          },
+        },
         eventName: 1,
         artistDJ: 1,
         description: 1,
@@ -140,7 +173,16 @@ exports.getAllEventsQuery = (ID) => {
         creator: 1,
         capacity: 1,
         hotnessScore: 1,
-        ticketsSold: 1
+        isfav: {
+          $in: [
+            currentUserId,
+            {
+              $ifNull: ["$favorites", []], // Provide an empty array as the default value if $likes is null
+            },
+          ],
+        },
+        ticketsSold: 1,
+        createdAt: 1,
       },
     },
   ];

@@ -4,6 +4,7 @@ const multer = require("multer");
 const fs = require("fs");
 // const FCM = require('fcm-node');
 const { STATUS_CODES } = require("./constants");
+const axios = require('axios');
 const moment = require("moment");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -15,6 +16,102 @@ const transporter = nodemailer.createTransport({
     pass:process.env.GMAIL_PASS,
   },
 });
+exports.getReverseGeocodingData = async (latitude, longitude) => {
+  const accessToken = process.env.MAP_BOX_API_KEY; // Replace with your Mapbox access token
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${accessToken}&language=en`;
+
+  try {
+      const response = await axios.get(url);
+    
+      if (response.data && response.data.features && response.data.features.length > 0) {
+          const feature = response.data.features[0];
+
+          let city, state, country;
+
+          feature.context.forEach(item => {
+              if (item.id.startsWith('place')) {
+                  city = item.text;
+              } else if (item.id.startsWith('region')) {
+                  state = item.text;
+              } else if (item.id.startsWith('country')) {
+                  country = item.text;
+              }
+          });
+
+          return {
+              city: city,
+              state: state,
+              country: country
+          };
+      }
+      return 'No address found';
+  } catch (error) {
+      console.error('Error during reverse geocoding:', error);
+      return 'Error retrieving address';
+  }
+}
+
+
+
+
+// exports.getReverseGeocodingData = async(latitude, longitude)=> {
+//   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&language=en`;
+
+//   try {
+//       const response = await axios.get(url);
+    
+//       if (response.data) {
+//           // You can extract more specific details as needed
+//           const address = response.data.address;
+//           return {
+//               city: address.city || address.town || address.village,
+//               state: address.state,
+//               country: address.country
+//           };
+//       }
+//       return 'No address found';
+//   } catch (error) {
+//       console.error('Error during reverse geocoding:', error);
+//       return 'Error retrieving address';
+//   }
+// }
+
+exports.getWeatherByCoordinates = async (latitude, longitude, date) => {
+  const apiKey = process.env.WEATHER_API_KEY; // Replace with your API key
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
+  try {
+    const response = await axios.get(url);
+    const forecastData = response.data;
+
+    // Convert the desired date to the same format used in the API response
+    const desiredDate = new Date(date).toISOString().split('T')[0];
+
+    // Find the closest time slot to 12:00 PM on the desired date
+    const dailyForecast = forecastData.list.find(forecast => {
+      const forecastDate = new Date(forecast.dt * 1000).toISOString().split('T')[0];
+      const forecastTime = new Date(forecast.dt * 1000).toISOString().split('T')[1];
+      return forecastDate === desiredDate && forecastTime.startsWith('12:00:00');
+    });
+
+    if (!dailyForecast) {
+      throw new Error('Forecast for the desired date is not available.');
+    }
+
+    return {
+      date: desiredDate,
+      temperature: dailyForecast.main.temp,
+      generalCondition: dailyForecast.weather[0].main,
+      weather: dailyForecast.weather[0].description,
+      humidity: dailyForecast.main.humidity,
+      windSpeed: dailyForecast.wind.speed,
+      // Add more fields as needed
+    };
+  } catch (error) {
+    console.error('Error fetching weather forecast data:', error);
+    return null;
+  }
+};
 
 exports.generateResponse = (data, message, res, code = 200) => {
   return res.status(code).json({

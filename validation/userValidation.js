@@ -30,13 +30,18 @@ exports.updateProfileValidation = Joi.object({
   location: Joi.object({
     type: Joi.string().valid("Point").default("Point"),
     coordinates: Joi.array().items(Joi.number()).required(),
-  }).required(),
+  }),
   isComplete: Joi.boolean().default(true),
   gender:Joi.string(),
   image: Joi.string().allow(null),
   preferredCategories: Joi.array().items(Joi.string()).allow(null),
   preferredDJ: Joi.array().items(Joi.string()).allow(null),
   prefferedStreamers: Joi.array().items(Joi.string()).allow(null),
+  address: Joi.object({
+    city: Joi.string().allow(null),
+    state: Joi.string().allow(null),
+    country: Joi.string().allow(null),
+  }).allow(null),
 });
 
 exports.locationValidation = Joi.object({

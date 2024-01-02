@@ -28,7 +28,7 @@ const userSchema = new Schema(
     image: { type: String, default: null },
     role: { type: String, default: "user", enum: Object.values(ROLES) },
     preferredEvents: [{ type: Schema.Types.ObjectId, ref: "EventType" }],
-    isActive: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: false },
     isComplete: { type: Boolean, default: false },
     fcmToken: { type: String },
     refreshToken: { type: String },
@@ -54,6 +54,11 @@ const userSchema = new Schema(
         ref: "User",
       },
     ],
+    address:{
+      city:{type:String, default:null },
+      state:{type:String, default:null},
+      country:{type:String, default:null},
+    },
   },
   { timestamps: true }
 );

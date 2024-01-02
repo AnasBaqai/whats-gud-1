@@ -5,6 +5,8 @@ const {
   createEventController,
   getAllEventsController,
   getEventByIdController,
+  giveEventCount,
+  favEventController
 } = require("../controller/eventController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
@@ -28,6 +30,16 @@ class eventAPI {
       "/id/:eventId",
       auth([ROLES.USER, ROLES.ADMIN]),
       getEventByIdController
+    );
+    router.post(
+      "/count",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      giveEventCount
+    );
+    router.post(
+      "/fav/:eventId",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      favEventController
     );
   }
 

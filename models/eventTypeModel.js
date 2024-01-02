@@ -18,7 +18,9 @@ const eventTypeModel = model("EventType", eventTypeSchema);
 
 exports.createEventType = (obj) => eventTypeModel.create(obj);
 
-exports.findEventType = (query) => eventTypeModel.find(query);
+exports.findEventType = (query) => eventTypeModel.findOne(query);
+
+exports.findAllEventTypeByQuery = (query) => eventTypeModel.find(query);
 
 exports.updateEventType = (eventId, obj) =>
   eventTypeModel.findByIdAndUpdate(eventId, obj, { new: true });

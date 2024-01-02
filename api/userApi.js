@@ -1,30 +1,43 @@
-'use strict';
+"use strict";
 
-const { Router } = require('express')
-const {createProfile,uploadProfileImage,updateLocation} = require('../controller/userController');
-const auth = require('../middlewares/Auth');
-const {ROLES} = require('../utils/constants');
-const {upload} = require('../utils/s3Upload');
+const { Router } = require("express");
+const {
+  createProfile,
+  uploadProfileImage,
+  updateLocation,
+  getUserProfile,
+  createAccessToken,
+} = require("../controller/userController");
+const auth = require("../middlewares/Auth");
+const { ROLES } = require("../utils/constants");
+const { upload } = require("../utils/s3Upload");
 class userAPI {
-    constructor() {
-        this.router = Router();
-        this.setupRoutes();
-    }
+  constructor() {
+    this.router = Router();
+    this.setupRoutes();
+  }
 
-    setupRoutes() {
-        let router = this.router;
-       router.patch('/create',auth([ROLES.USER,ROLES.ADMIN]), createProfile);
-       router.post('/upload',auth([ROLES.USER,ROLES.ADMIN]),upload.single('image'),uploadProfileImage);
-         router.patch('/location',auth([ROLES.USER,ROLES.ADMIN]),updateLocation);
-    }
+  setupRoutes() {
+    let router = this.router;
+    router.patch("/create", auth([ROLES.USER, ROLES.ADMIN]), createProfile);
+    router.post(
+      "/upload",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      upload.single("image"),
+      uploadProfileImage
+    );
+    router.patch("/location", auth([ROLES.USER, ROLES.ADMIN]), updateLocation);
+    router.get("/profile", auth([ROLES.USER, ROLES.ADMIN]), getUserProfile);
+    router.post("/token", auth([ROLES.USER, ROLES.ADMIN]), createAccessToken);
+  }
 
-    getRouter() {
-        return this.router;
-    }
+  getRouter() {
+    return this.router;
+  }
 
-    getRouterGroup() {
-        return '/user';
-    }
+  getRouterGroup() {
+    return "/user";
+  }
 }
 
 module.exports = userAPI;

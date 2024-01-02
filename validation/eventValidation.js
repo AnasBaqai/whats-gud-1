@@ -22,9 +22,7 @@ exports.eventValidation = Joi.object({
   artistDJ: Joi.object({
     id: Joi.custom(objectId, 'Object ID validation').optional(),
     name: Joi.string().optional()
-  }).or('id', 'name').required().messages({
-    'object.missing': 'Either artistDJ.id or artistDJ.name must be provided'
-  }),
+  }).optional(),
   description: Joi.string().max(1000).required(),
   dateAndTime: Joi.date().required(),
   ticketPrice: Joi.number().optional(),

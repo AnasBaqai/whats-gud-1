@@ -6,7 +6,7 @@ exports.toggleFollowUser = async (req, res, next) => {
   try {
     const currentUserId = req.user.id; // ID of the current user
     const targetUserId = req.query.targetUserId; // ID of the user to toggle follow
-    console.log(currentUserId, targetUserId);
+    
     // Check the current state of the relationship
     const relation = await findRelation({ user: currentUserId });
     const isFollowing = relation.following.includes(targetUserId);
@@ -18,13 +18,13 @@ exports.toggleFollowUser = async (req, res, next) => {
       ? { $pull: { following: targetUserId } }
       : { $addToSet: { following: targetUserId } };
     // Update target user's followers
-    await updateRelation({ user: targetUserId }, followerUpdate);
+    await  updateRelation({ user: targetUserId }, followerUpdate);
 
     // Update current user's following
-    await updateRelation({ user: currentUserId }, followingUpdate);
+    const updatedRelation = await updateRelation({ user: currentUserId }, followingUpdate);
     return generateResponse(
-      {},
-      `Successfully toggled follow status for user ${targetUserId}`,
+      updatedRelation,
+      `Successfully toggled follow status`,
       res
     );
   } catch (error) {

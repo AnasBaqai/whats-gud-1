@@ -25,11 +25,13 @@ const eventSchema = new Schema(
       id: { 
         type: Schema.Types.ObjectId, 
         ref: 'User', 
-        required: function() { return !this.artistDJ.name; }  
+        // required: function() { return !this.artistDJ.name; } 
+        required: false 
       },
       name: { 
         type: String, 
-        required: function() { return !this.artistDJ.id; } // Name is required if no ID is provided
+        // required: function() { return !this.artistDJ.id; } // Name is required if no ID is provided
+        required: false
       }
     },
     description: {
@@ -73,6 +75,7 @@ const eventSchema = new Schema(
     },
     capacity: { type: Number, required: true },
     isApproved: { type: Boolean, default: false },
+    favorites: [{ type: Schema.Types.ObjectId, ref: "User" }],
     
     // Additional fields like 'created_at', 'updated_at', or 'isApproved' can be added as needed
   },
@@ -96,6 +99,9 @@ exports.updateEvent = (query, obj) =>Event.findOneAndUpdate(query, obj, { new: t
 
 // delete event
 exports.deleteEvent = (query) => Event.findOneAndDelete(query);
+
+//find many events
+exports.findManyEvents = (query) => Event.aggregate(query);
 
 exports.getAllEvents = async ({ query, page, limit, responseKey = "data" }) => {
   const { data, pagination } = await getMongooseAggregatePaginatedData({

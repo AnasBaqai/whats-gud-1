@@ -24,8 +24,8 @@ exports.createProfile = async (req, res, next) => {
     preferredCategories,
     preferredDJ,
     prefferedStreamers,
+    address
   } = body;
-  console.log(gender)
   const { error } = updateProfileValidation.validate(body);
   if (error) {
     return next({
@@ -35,15 +35,14 @@ exports.createProfile = async (req, res, next) => {
   }
 
   // Validate and parse longitude and latitude
-  const [longitude, latitude] = location.coordinates.map((coord) =>
+  let longitude = 0;
+  let latitude = 0;
+  if(location){
+   [longitude, latitude] = location?.coordinates?.map((coord) =>
     parseFloat(coord)
   );
-  if (isNaN(longitude) || isNaN(latitude)) {
-    return next({
-      statusCode: STATUS_CODES.BAD_REQUEST,
-      message: "Invalid longitude or latitude values.",
-    });
-  }
+}
+  console.log(longitude, latitude)
 
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
@@ -64,6 +63,7 @@ exports.createProfile = async (req, res, next) => {
       preferredCategories: preferredCategories || [],
       preferredDJ: preferredDJ || [],
       prefferedStreamers: prefferedStreamers || [],
+      address:address || {city:null, state:null, country:null}
     };
 
     const updatedUser = await updateUser({ _id: userId }, updateData).exec();
@@ -89,9 +89,9 @@ exports.uploadProfileImage = async (req, res, next) => {
 
   const userId = req.user.id;
   const user = await findUser({ _id: userId });
-  if (user.image) {
-    await deleteImage([user.image]);
-  }
+  // if (user.image) {
+  //   await deleteImage([user.image]);
+  // }
 
   await updateUser({ _id: userId }, { image: filePath[0] });
 
@@ -137,3 +137,40 @@ exports.updateLocation = async (req, res, next) => {
     });
   }
 };
+
+
+exports.getUserProfile = async (req, res, next) => { 
+  try {
+    const userId = req.user.id;
+    const user = await findUser({ _id: mongoose.Types.ObjectId(userId) });
+    if (!user) {
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "User not found",
+      });
+    }
+    return generateResponse(user, "User profile fetched", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}
+
+// return new access token 
+exports.createAccessToken = async (req, res, next) => {
+  try{
+    const user = req.user;
+    console.log(user)
+    const token = generateToken(user);
+    res.setHeader("authorization", token);
+    return generateResponse(token, "Access token created", res);
+  }catch(err){
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}

@@ -1,6 +1,6 @@
 const {createCategories,findCategory,updateCategory}= require('../models/categoriesModel');
 const { findEvent } = require('../models/eventModel');
-const { findEventType } = require('../models/eventTypeModel');
+const { findEventType, findAllEventTypeByQuery } = require('../models/eventTypeModel');
 const { parseBody, generateResponse } = require("../utils");
 const { STATUS_CODES } = require("../utils/constants");
 
@@ -104,6 +104,7 @@ const sampleData1 =[
     "email": "megan.moore@example.com"
   }
 ]
+
 const sampleData2 =[
   {
     "_id": "10",
@@ -162,11 +163,12 @@ const sampleData2 =[
 ]
 
 
+
 // function to get all categories
 exports.getAllCategories = async (req, res, next) => {
   try {
     const categories = await findCategory({});
-    const eventTypes = await findEventType({});
+    const eventTypes = await findAllEventTypeByQuery({});
 
     // Transform categories array into an object with name as key
     // Transform categories array into an array of objects

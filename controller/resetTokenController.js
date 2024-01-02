@@ -99,9 +99,11 @@ exports.verifyconfirmation = async (req, res, next) => {
       });
     }
     const user = await findUser({ email });
+
     const passwordReset = await findPasswordResetToken({
       user: user._id,
     });
+ 
     if (!passwordReset.isVerified) {
       return next({
         statusCode: STATUS_CODES.NOT_FOUND,
