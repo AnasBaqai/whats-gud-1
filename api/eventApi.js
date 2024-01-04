@@ -25,7 +25,7 @@ class eventAPI {
       upload.single("coverImage"),
       createEventController
     );
-    router.get("/all", auth([ROLES.USER, ROLES.ADMIN]), getAllEventsController);
+    router.post("/all", auth([ROLES.USER, ROLES.ADMIN]), getAllEventsController);
     router.get(
       "/id/:eventId",
       auth([ROLES.USER, ROLES.ADMIN]),
