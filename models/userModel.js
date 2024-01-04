@@ -79,6 +79,7 @@ exports.createUser = (obj) => UserModel.create(obj);
 
 // find user by query
 exports.findUser = (query) => UserModel.findOne(query);
+exports.findUsers = (query) => UserModel.find(query);
 
 // update user
 exports.updateUser = (query, obj) =>
