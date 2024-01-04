@@ -1,25 +1,34 @@
-exports.getAllEventsQuery = (ID = null,subCategoryIds=[], currentUserId) => {
+exports.getAllEventsQuery = (ID = null, subCategoryIds = [], currentUserId) => {
   let matchCondition;
   const currentDate = new Date();
-
+  
   // This condition will always be included to match only future events
   const dateCondition = { dateAndTime: { $gte: currentDate } };
-
+  
   if (ID) {
-    // Start with matching the main category ID
     matchCondition = {
       $and: [
         dateCondition,
         { "category.main": ID }
       ],
     };
-    
+  
     if (subCategoryIds.length > 0) {
       // If subCategoryIds are provided, add them to the condition
       matchCondition.$and.push({ "category.sub": { $in: subCategoryIds } });
     }
+  } else if (subCategoryIds.length > 0) {
+    // If no mainCategoryId is provided but subCategoryIds are provided,
+    // match based on the date and subCategoryIds
+    matchCondition = {
+      $and: [
+        dateCondition,
+        { "category.sub": { $all: subCategoryIds } }
+      ],
+    };
   } else {
-    // If no mainCategoryId is provided, just match based on the date
+    // If neither mainCategoryId nor subCategoryIds are provided,
+    // match only based on the date
     matchCondition = dateCondition;
   }
 

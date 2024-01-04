@@ -53,7 +53,8 @@ exports.getAllEventsController = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
     const userId = mongoose.Types.ObjectId(req.user.id);
     const user = await findUser({ _id: userId });
-    let {subCategoryIds} = req.body || [];
+    let subCategoryIds = req.body.subCategoryIds || [];
+    console.log(subCategoryIds);
     //convert subCategoryIds to objectIds
     subCategoryIds = subCategoryIds.map((id) => mongoose.Types.ObjectId(id));
     console.log(subCategoryIds);
@@ -61,7 +62,7 @@ exports.getAllEventsController = async (req, res, next) => {
     let pipeline;
     if (req.query.mainCategoryId) {
       const mainCategoryId = mongoose.Types.ObjectId(req.query.mainCategoryId);
-      pipeline = getAllEventsQuery(mainCategoryId, userId); // For specific category
+      pipeline = getAllEventsQuery(mainCategoryId,subCategoryIds, userId); // For specific category
     } else {
       pipeline = getAllEventsQuery(null,subCategoryIds, userId); // For all events
     }
