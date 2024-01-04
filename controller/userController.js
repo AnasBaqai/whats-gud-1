@@ -42,14 +42,14 @@ exports.createProfile = async (req, res, next) => {
     parseFloat(coord)
   );
 }
-  console.log(longitude, latitude)
-
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
     const user = await findUser({ _id: userId }).exec();
+    if(!(user.image === image)){
     if (user && user.image) {
       await deleteImage([user.image]); // Assuming deleteImage is an async function
     }
+  }
 
     const updateData = {
       preferredEvents: preferredEvents || [],
