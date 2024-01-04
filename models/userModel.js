@@ -61,6 +61,7 @@ const userSchema = new Schema(
     },
     stripeAccountId: { type: String, default: null },
     bio: { type: String, default: null },
+    avatar: { type: String, default: null },
   },
 
   { timestamps: true }
