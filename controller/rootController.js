@@ -1,7 +1,7 @@
 "use strict";
 
 const { generateResponse,getWeatherByCoordinates } = require("../utils");
-
+const { STATUS_CODES } = require("../utils/constants");
 exports.DefaultHandler = (req, res, next) => {
   generateResponse(null, `Welcome to the ${process.env.APP_NAME} - API`, res);
 };

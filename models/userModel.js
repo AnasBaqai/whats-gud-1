@@ -12,7 +12,7 @@ const userSchema = new Schema(
     firstName: { type: String, default: null },
     lastName: { type: String, default: null },
     dob: { type: Date },
-    email: { type: String, unique: true, required: true, lowercase: true},
+    email: { type: String, unique: true, required: true, lowercase: true },
     password: { type: String },
     location: {
       type: {
@@ -54,12 +54,15 @@ const userSchema = new Schema(
         ref: "User",
       },
     ],
-    address:{
-      city:{type:String, default:null },
-      state:{type:String, default:null},
-      country:{type:String, default:null},
+    address: {
+      city: { type: String, default: null },
+      state: { type: String, default: null },
+      country: { type: String, default: null },
     },
+    stripeAccountId: { type: String, default: null },
+    bio: { type: String, default: null },
   },
+
   { timestamps: true }
 );
 
