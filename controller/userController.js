@@ -1,7 +1,7 @@
 "use strict";
 const { STATUS_CODES } = require("../utils/constants");
 const { parseBody, generateResponse } = require("../utils");
-const { updateUser, findUser } = require("../models/userModel");
+const { updateUser, findUser, findUsers } = require("../models/userModel");
 const {
   updateProfileValidation,
   locationValidation,
@@ -167,6 +167,24 @@ exports.createAccessToken = async (req, res, next) => {
     const token = generateToken(user);
     res.setHeader("authorization", token);
     return generateResponse(token, "Access token created", res);
+  }catch(err){
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}
+
+
+// search users in firstname and lastname through query params and get only image firstName lastName email and id
+
+
+
+exports.searchUsers = async (req, res, next) => {
+  try{
+    const {search} = req.query;
+    const users = await findUsers({$or:[{firstName:{$regex:search,$options:'i'}},{lastName:{$regex:search,$options:'i'}},{email:{$regex:search,$options:'i'}}]}).select('firstName lastName email image _id');
+    return generateResponse(users, "Users fetched", res);
   }catch(err){
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
