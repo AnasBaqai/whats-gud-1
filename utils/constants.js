@@ -8,6 +8,15 @@ exports.TICKET_STATUS = Object.freeze({
   USED: "used",
 });
 
+exports.deleteFields = {
+  deleted: {
+    type: Boolean,
+    default: false,
+  },
+  deletedAt: {
+    type: Date,
+  },
+};
 exports.STATUS_CODES = Object.freeze({
   SUCCESS: 200,
   CREATED: 201,

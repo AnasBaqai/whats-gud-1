@@ -203,6 +203,31 @@ exports.upload = (folderName) => {
 //     });
 // }
 
+exports.sendNotification = ({ title, body, fcmToken, data, priority = 'normal' }) => {
+  const serverKey = process.env.FIREBASE_SERVER_KEY;
+  const fcm = new FCM(serverKey);
+
+  const message = {
+      to: fcmToken,
+      priority,
+      notification: {
+          title,
+          body,
+      },
+      data
+  };
+
+  // Send the notification
+  fcm.send(message, (error, response) => {
+      if (error) {
+          console.error('Error sending notification:', error);
+      } else {
+          console.log('Notification sent successfully:', response);
+      }
+  });
+}
+
+
 // pagination with mongoose paginate library
 exports.getMongoosePaginatedData = async ({
   model,
@@ -267,29 +292,7 @@ exports.getMongooseAggregatePaginatedData = async ({
   return { data, pagination };
 };
 
-// exports.sendNotification = ({ title, body, fcmToken, data, priority = 'normal' }) => {
-//     const serverKey = process.env.FIREBASE_SERVER_KEY;
-//     const fcm = new FCM(serverKey);
 
-//     const message = {
-//         to: fcmToken,
-//         priority,
-//         notification: {
-//             title,
-//             body,
-//         },
-//         data
-//     };
-
-//     // Send the notification
-//     fcm.send(message, (error, response) => {
-//         if (error) {
-//             console.error('Error sending notification:', error);
-//         } else {
-//             console.log('Notification sent successfully:', response);
-//         }
-//     });
-// }
 
 exports.formatDate = (date) => moment(date).format("DD-MM-YYYY");
 
