@@ -266,7 +266,7 @@ exports.getMongooseAggregatePaginatedData = async ({
   query = [],
   populate = "",
   select = "-password",
-  sort = { createdAt: -1 },
+  sort = {dateAndTime:1, createdAt: -1 },
 }) => {
   const options = {
     select,
