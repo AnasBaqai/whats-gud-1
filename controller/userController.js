@@ -192,3 +192,25 @@ exports.searchUsers = async (req, res, next) => {
     });
   }
 }
+
+
+// set user avatar 
+
+exports.setUserAvatar = async (req, res, next) => {
+  try{
+    const {avatar} = req.body;
+    const userId = req.user.id;
+    const updatedUser = await updateUser(
+      { _id: mongoose.Types.ObjectId(userId) },
+      {
+        avatar,
+      }
+    );
+    return generateResponse(updatedUser, "User avatar updated", res);
+  }catch(err){
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}

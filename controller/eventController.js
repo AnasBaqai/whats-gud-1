@@ -13,7 +13,7 @@ const { STATUS_CODES } = require("../utils/constants");
 const { s3Uploadv3 } = require("../utils/s3Upload");
 const { eventValidation } = require("../validation/eventValidation");
 const mongoose = require("mongoose");
-const { getAllEventsQuery } = require("./queries/eventQueries");
+const { getAllEventsQuery, getFavEventsQuery } = require("./queries/eventQueries");
 const { findUser } = require("../models/userModel");
 const { locationValidation } = require("../validation/userValidation");
 
@@ -192,6 +192,31 @@ exports.favEventController = async (req, res, next) => {
     });
   }
 };
+
+// function to get fav events
+exports.getFavEventsController = async (req, res, next) => {
+  try {
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+    const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
+    const pipeline = getFavEventsQuery(userId);
+    const result = await getAllEvents({
+      query: pipeline,
+      page,
+      limit,
+      responseKey: "fav events",
+    });
+   
+    return generateResponse(result, "Events fetched successfully", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
 
 /*
 const NodeGeocoder = require('node-geocoder');

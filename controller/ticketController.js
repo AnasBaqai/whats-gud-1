@@ -151,9 +151,7 @@ exports.verifyTicket = async (req, res, next) => {
   }
 };
 
-// const stripe = Stripe('your_stripe_secret_key');
 
-// const app = express();
 
 exports.stripeOnBoarding = async (req, res, next) => {
   userId = req.user.id;
