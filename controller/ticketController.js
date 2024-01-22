@@ -34,8 +34,8 @@ exports.createNewTicket = async (req, res, next) => {
   try {
     const eventIdObj = mongoose.Types.ObjectId(eventId);
     const event = await findEvent({ _id: eventIdObj });
-    const eventCreator = event.creator
-    const eventCreatorStripeAccountId = findUser({_id:mongoose.Types.ObjectId(eventCreator)}).stripeAccountId
+   // const eventCreator = event.creator
+   // const eventCreatorStripeAccountId = findUser({_id:mongoose.Types.ObjectId(eventCreator)}).stripeAccountId
     const ticketsBought = await countTickets({ eventId: eventIdObj });
 
     // Check event capacity

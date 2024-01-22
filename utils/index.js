@@ -51,6 +51,34 @@ exports.getReverseGeocodingData = async (latitude, longitude) => {
   }
 }
 
+const apiKey = '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'; // Replace with your API key
+const endpoint = 'https://api.openai.com/v1/engines/davinci-codex/completions';
+
+exports.queryChatGPT = async (prompt) => {
+    try {
+        const response = await axios.post(endpoint, {
+            prompt: prompt,
+            max_tokens: 150
+        }, {
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        return response.data.choices[0].text;
+    } catch (error) {
+        console.error('Error calling ChatGPT API:', error);
+        return null;
+    }
+};
+
+// // Example usage
+// queryChatGPT("Translate 'Hello, world!' to Spanish").then(response => {
+//     console.log('Response:', response);
+// });
+
+
 
 
 
