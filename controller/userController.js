@@ -5,6 +5,7 @@ const { updateUser, findUser, findUsers } = require("../models/userModel");
 const {
   updateProfileValidation,
   locationValidation,
+  profileValidation,
 } = require("../validation/userValidation");
 const { findManyEventsTypeByIds } = require("../models/eventTypeModel");
 const mongoose = require("mongoose");
@@ -24,7 +25,7 @@ exports.createProfile = async (req, res, next) => {
     preferredCategories,
     preferredDJ,
     prefferedStreamers,
-    address
+    address,
   } = body;
   const { error } = updateProfileValidation.validate(body);
   if (error) {
@@ -37,19 +38,19 @@ exports.createProfile = async (req, res, next) => {
   // Validate and parse longitude and latitude
   let longitude = 0;
   let latitude = 0;
-  if(location){
-   [longitude, latitude] = location?.coordinates?.map((coord) =>
-    parseFloat(coord)
-  );
-}
+  if (location) {
+    [longitude, latitude] = location?.coordinates?.map((coord) =>
+      parseFloat(coord)
+    );
+  }
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
     const user = await findUser({ _id: userId }).exec();
-    if(!(user.image === image)){
-    if (user && user.image) {
-      await deleteImage([user.image]); // Assuming deleteImage is an async function
+    if (!(user.image === image)) {
+      if (user && user.image) {
+        await deleteImage([user.image]); // Assuming deleteImage is an async function
+      }
     }
-  }
 
     const updateData = {
       preferredEvents: preferredEvents || [],
@@ -63,7 +64,7 @@ exports.createProfile = async (req, res, next) => {
       preferredCategories: preferredCategories || [],
       preferredDJ: preferredDJ || [],
       prefferedStreamers: prefferedStreamers || [],
-      address:address || {city:null, state:null, country:null}
+      address: address || { city: null, state: null, country: null },
     };
 
     const updatedUser = await updateUser({ _id: userId }, updateData).exec();
@@ -138,8 +139,7 @@ exports.updateLocation = async (req, res, next) => {
   }
 };
 
-
-exports.getUserProfile = async (req, res, next) => { 
+exports.getUserProfile = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const user = await findUser({ _id: mongoose.Types.ObjectId(userId) });
@@ -157,48 +157,50 @@ exports.getUserProfile = async (req, res, next) => {
       message: "internal server error",
     });
   }
-}
+};
 
-// return new access token 
+// return new access token
 exports.createAccessToken = async (req, res, next) => {
-  try{
+  try {
     const user = req.user;
-    console.log(user)
+    console.log(user);
     const token = generateToken(user);
     res.setHeader("authorization", token);
     return generateResponse(token, "Access token created", res);
-  }catch(err){
+  } catch (err) {
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
     });
   }
-}
-
+};
 
 // search users in firstname and lastname through query params and get only image firstName lastName email and id
 
-
-
 exports.searchUsers = async (req, res, next) => {
-  try{
-    const {search} = req.query;
-    const users = await findUsers({$or:[{firstName:{$regex:search,$options:'i'}},{lastName:{$regex:search,$options:'i'}},{email:{$regex:search,$options:'i'}}]}).select('firstName lastName email image _id');
+  try {
+    const { search } = req.query;
+    const users = await findUsers({
+      $or: [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ],
+    }).select("firstName lastName email image _id");
     return generateResponse(users, "Users fetched", res);
-  }catch(err){
+  } catch (err) {
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
     });
   }
-}
+};
 
-
-// set user avatar 
+// set user avatar
 
 exports.setUserAvatar = async (req, res, next) => {
-  try{
-    const {avatar} = req.body;
+  try {
+    const { avatar } = req.body;
     const userId = req.user.id;
     const updatedUser = await updateUser(
       { _id: mongoose.Types.ObjectId(userId) },
@@ -207,10 +209,35 @@ exports.setUserAvatar = async (req, res, next) => {
       }
     );
     return generateResponse(updatedUser, "User avatar updated", res);
-  }catch(err){
+  } catch (err) {
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
     });
   }
-}
+};
+
+// update profile
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const body = parseBody(req.body);
+    const { error } = profileValidation.validate(body);
+    if (error) {
+      return next({
+        statusCode: STATUS_CODES.BAD_REQUEST,
+        message: error.message,
+      });
+    }
+    const userId = mongoose.Types.ObjectId(req.user.id);
+
+    const updatedUser = await updateUser({ _id: userId }, body).exec();
+    return generateResponse(updatedUser, "Profile created", res);
+  } catch (err) {
+    console.log(err);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};

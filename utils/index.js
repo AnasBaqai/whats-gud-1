@@ -55,22 +55,23 @@ const apiKey = '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'; // Replace
 const endpoint = 'https://api.openai.com/v1/engines/davinci-codex/completions';
 
 exports.queryChatGPT = async (prompt) => {
-    try {
-        const response = await axios.post(endpoint, {
-            prompt: prompt,
-            max_tokens: 150
-        }, {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
-        });
+  try {
+      const response = await axios.post(endpoint, {
+          prompt: prompt,
+          max_tokens: 150
+      }, {
+          headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json'
+          }
+      });
 
-        return response.data.choices[0].text;
-    } catch (error) {
-        console.error('Error calling ChatGPT API:', error);
-        return null;
-    }
+      console.log('OpenAI API Response:', response.data.choices[0].text);
+      return response.data.choices[0].text;
+  } catch (error) {
+      console.error('Error calling ChatGPT API:', error.response.data);
+      return null;
+  }
 };
 
 // // Example usage

@@ -32,7 +32,7 @@ exports.updateProfileValidation = Joi.object({
     coordinates: Joi.array().items(Joi.number()).required(),
   }),
   isComplete: Joi.boolean().default(true),
-  gender:Joi.string(),
+  gender: Joi.string(),
   image: Joi.string().allow(null),
   preferredCategories: Joi.array().items(Joi.string()).allow(null),
   preferredDJ: Joi.array().items(Joi.string()).allow(null),
@@ -49,4 +49,18 @@ exports.locationValidation = Joi.object({
     type: Joi.string().valid("Point").default("Point"),
     coordinates: Joi.array().items(Joi.number()).required(),
   }).required(),
+});
+
+exports.profileValidation = Joi.object({
+  firstName: Joi.string()
+    .regex(/^[a-zA-Z]+[0-9]*$/)
+    .min(3)
+    .max(30),
+  lastName: Joi.string()
+    .regex(/^[a-zA-Z]+[0-9]*$/)
+    .min(3)
+    .max(30)
+    .allow(null, ""),
+  dob: Joi.string().regex(/^(?:\d{2}|\d{4})-(?:\d{1,2})-(?:\d{1,2})$/),
+  gender: Joi.string(),
 });
