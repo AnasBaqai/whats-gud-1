@@ -384,7 +384,7 @@ exports.retrieveDeletedPostsController = async (req, res, next) => {
     const query = getDeletedPostsQuery(currentUserId);
     const result = await getAllPosts({ query, page, limit ,responseKey:"deletedPosts"});
     return generateResponse(
-      { result },
+      result ,
       "deleted Posts fetched successfully",
       res
     );
