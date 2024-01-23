@@ -23,6 +23,7 @@ const {
   getPostsQuery,
   getCommentsOfPostQuery,
   getLikedUsersOfPostQuery,
+  getDeletedPostsQuery,
 } = require("./queries/postQueries");
 
 // create post
@@ -320,8 +321,13 @@ exports.getAllLikesController = async (req, res, next) => {
         statusCode: STATUS_CODES.NOT_FOUND,
         message: "Post not found",
       });
-    const pipeline = getLikedUsersOfPostQuery(postId,userId);
-    const users = await getAllPosts({ query: pipeline, page, limit,responseKey:"likedUser" });
+    const pipeline = getLikedUsersOfPostQuery(postId, userId);
+    const users = await getAllPosts({
+      query: pipeline,
+      page,
+      limit,
+      responseKey: "likedUser",
+    });
     return generateResponse(users, "liked Users fetched successfully", res);
   } catch (err) {
     console.log(err.message);
@@ -331,3 +337,62 @@ exports.getAllLikesController = async (req, res, next) => {
     });
   }
 };
+
+
+// delete post 
+exports.deletePostController = async (req, res, next) => {
+  try {
+    const postId = mongoose.Types.ObjectId(req.params.postId);
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const post = await findPost({ _id: postId });
+
+    if (!post)
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "Post not found",
+      });
+    if (post.postedBy.toString() !== userId.toString())
+      return next({
+        statusCode: STATUS_CODES.UNAUTHORIZED,
+        message: "You are not authorized to delete this post",
+      });
+    if (post.isDeleted)
+      return next({
+        statusCode: STATUS_CODES.BAD_REQUEST,
+        message: "Post already deleted",
+      });
+    await updatePost({ _id: postId }, { isDeleted: true });
+    return generateResponse({deleteStatus:true}, "Post deleted successfully", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// retrieve deleted posts 
+
+exports.retrieveDeletedPostsController = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    const currentUserId = mongoose.Types.ObjectId(req.user.id);
+    console.log(currentUserId)
+    const query = getDeletedPostsQuery(currentUserId);
+    const result = await getAllPosts({ query, page, limit ,responseKey:"deletedPosts"});
+    return generateResponse(
+      { result },
+      "deleted Posts fetched successfully",
+      res
+    );
+  } catch (error) {
+    console.log("here",error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}

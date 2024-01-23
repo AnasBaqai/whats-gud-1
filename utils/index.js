@@ -4,16 +4,17 @@ const multer = require("multer");
 const fs = require("fs");
 // const FCM = require('fcm-node');
 const { STATUS_CODES } = require("./constants");
-const axios = require('axios');
+const axios = require("axios");
 const moment = require("moment");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const openAI = require("openai");
 
 const transporter = nodemailer.createTransport({
   service: "gmail", // Use your email service provider
   auth: {
-    user:process.env.GMAIL_USER,
-    pass:process.env.GMAIL_PASS,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 exports.getReverseGeocodingData = async (latitude, longitude) => {
@@ -21,89 +22,56 @@ exports.getReverseGeocodingData = async (latitude, longitude) => {
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${accessToken}&language=en`;
 
   try {
-      const response = await axios.get(url);
-    
-      if (response.data && response.data.features && response.data.features.length > 0) {
-          const feature = response.data.features[0];
+    const response = await axios.get(url);
 
-          let city, state, country;
+    if (
+      response.data &&
+      response.data.features &&
+      response.data.features.length > 0
+    ) {
+      const feature = response.data.features[0];
 
-          feature.context.forEach(item => {
-              if (item.id.startsWith('place')) {
-                  city = item.text;
-              } else if (item.id.startsWith('region')) {
-                  state = item.text;
-              } else if (item.id.startsWith('country')) {
-                  country = item.text;
-              }
-          });
+      let city, state, country;
 
-          return {
-              city: city,
-              state: state,
-              country: country
-          };
-      }
-      return 'No address found';
-  } catch (error) {
-      console.error('Error during reverse geocoding:', error);
-      return 'Error retrieving address';
-  }
-}
-
-const apiKey = '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'; // Replace with your API key
-const endpoint = 'https://api.openai.com/v1/engines/davinci-codex/completions';
-
-exports.queryChatGPT = async (prompt) => {
-  try {
-      const response = await axios.post(endpoint, {
-          prompt: prompt,
-          max_tokens: 150
-      }, {
-          headers: {
-              Authorization: `Bearer ${apiKey}`,
-              'Content-Type': 'application/json'
-          }
+      feature.context.forEach((item) => {
+        if (item.id.startsWith("place")) {
+          city = item.text;
+        } else if (item.id.startsWith("region")) {
+          state = item.text;
+        } else if (item.id.startsWith("country")) {
+          country = item.text;
+        }
       });
 
-      console.log('OpenAI API Response:', response.data.choices[0].text);
-      return response.data.choices[0].text;
+      return {
+        city: city,
+        state: state,
+        country: country,
+      };
+    }
+    return "No address found";
   } catch (error) {
-      console.error('Error calling ChatGPT API:', error.response.data);
-      return null;
+    console.error("Error during reverse geocoding:", error);
+    return "Error retrieving address";
   }
 };
 
-// // Example usage
-// queryChatGPT("Translate 'Hello, world!' to Spanish").then(response => {
-//     console.log('Response:', response);
-// });
+const apiKey = process.env.OPEN_AI_KEY; // Replace with your API key
+const openai = new openAI({ apiKey: apiKey });
 
+exports.queryChatGPT = async (message) => {
+  try {
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: "system", content: message }],
+      model: "gpt-3.5-turbo",
+    });
 
-
-
-
-// exports.getReverseGeocodingData = async(latitude, longitude)=> {
-//   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&language=en`;
-
-//   try {
-//       const response = await axios.get(url);
-    
-//       if (response.data) {
-//           // You can extract more specific details as needed
-//           const address = response.data.address;
-//           return {
-//               city: address.city || address.town || address.village,
-//               state: address.state,
-//               country: address.country
-//           };
-//       }
-//       return 'No address found';
-//   } catch (error) {
-//       console.error('Error during reverse geocoding:', error);
-//       return 'Error retrieving address';
-//   }
-// }
+    return completion.choices[0].message.content;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
 
 exports.getWeatherByCoordinates = async (latitude, longitude, date) => {
   const apiKey = process.env.WEATHER_API_KEY; // Replace with your API key
@@ -114,17 +82,23 @@ exports.getWeatherByCoordinates = async (latitude, longitude, date) => {
     const forecastData = response.data;
 
     // Convert the desired date to the same format used in the API response
-    const desiredDate = new Date(date).toISOString().split('T')[0];
+    const desiredDate = new Date(date).toISOString().split("T")[0];
 
     // Find the closest time slot to 12:00 PM on the desired date
-    const dailyForecast = forecastData.list.find(forecast => {
-      const forecastDate = new Date(forecast.dt * 1000).toISOString().split('T')[0];
-      const forecastTime = new Date(forecast.dt * 1000).toISOString().split('T')[1];
-      return forecastDate === desiredDate && forecastTime.startsWith('12:00:00');
+    const dailyForecast = forecastData.list.find((forecast) => {
+      const forecastDate = new Date(forecast.dt * 1000)
+        .toISOString()
+        .split("T")[0];
+      const forecastTime = new Date(forecast.dt * 1000)
+        .toISOString()
+        .split("T")[1];
+      return (
+        forecastDate === desiredDate && forecastTime.startsWith("12:00:00")
+      );
     });
 
     if (!dailyForecast) {
-      throw new Error('Forecast for the desired date is not available.');
+      throw new Error("Forecast for the desired date is not available.");
     }
 
     return {
@@ -137,7 +111,7 @@ exports.getWeatherByCoordinates = async (latitude, longitude, date) => {
       // Add more fields as needed
     };
   } catch (error) {
-    console.error('Error fetching weather forecast data:', error);
+    console.error("Error fetching weather forecast data:", error);
     return null;
   }
 };
@@ -166,10 +140,10 @@ exports.generateResetToken = () => {
 
 exports.sendResetEmail = async (email, token, userId) => {
   const resetUrl = `https://whatsgud.cyclic.app/api/reset/token/verify?token=${token}&userId=${userId}`;
- 
+
   const mailOptions = {
     to: email,
-    from:process.env.GMAIL_USER,
+    from: process.env.GMAIL_USER,
     subject: "Password Reset",
     text:
       `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
@@ -232,30 +206,35 @@ exports.upload = (folderName) => {
 //     });
 // }
 
-exports.sendNotification = ({ title, body, fcmToken, data, priority = 'normal' }) => {
+exports.sendNotification = ({
+  title,
+  body,
+  fcmToken,
+  data,
+  priority = "normal",
+}) => {
   const serverKey = process.env.FIREBASE_SERVER_KEY;
   const fcm = new FCM(serverKey);
 
   const message = {
-      to: fcmToken,
-      priority,
-      notification: {
-          title,
-          body,
-      },
-      data
+    to: fcmToken,
+    priority,
+    notification: {
+      title,
+      body,
+    },
+    data,
   };
 
   // Send the notification
   fcm.send(message, (error, response) => {
-      if (error) {
-          console.error('Error sending notification:', error);
-      } else {
-          console.log('Notification sent successfully:', response);
-      }
+    if (error) {
+      console.error("Error sending notification:", error);
+    } else {
+      console.log("Notification sent successfully:", response);
+    }
   });
-}
-
+};
 
 // pagination with mongoose paginate library
 exports.getMongoosePaginatedData = async ({
@@ -295,7 +274,7 @@ exports.getMongooseAggregatePaginatedData = async ({
   query = [],
   populate = "",
   select = "-password",
-  sort = {dateAndTime:1, createdAt: -1 },
+  sort = { dateAndTime: 1, createdAt: -1 },
 }) => {
   const options = {
     select,
@@ -320,8 +299,6 @@ exports.getMongooseAggregatePaginatedData = async ({
   );
   return { data, pagination };
 };
-
-
 
 exports.formatDate = (date) => moment(date).format("DD-MM-YYYY");
 

@@ -232,7 +232,7 @@ exports.updateProfile = async (req, res, next) => {
     const userId = mongoose.Types.ObjectId(req.user.id);
 
     const updatedUser = await updateUser({ _id: userId }, body).exec();
-    return generateResponse(updatedUser, "Profile created", res);
+    return generateResponse(updatedUser, "Profile updated", res);
   } catch (err) {
     console.log(err);
     return next({

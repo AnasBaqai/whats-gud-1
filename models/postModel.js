@@ -12,6 +12,7 @@ const postSchema = new Schema(
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     shares: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Array of user IDs who shared the post
+    isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

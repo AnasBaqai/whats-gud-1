@@ -33,6 +33,7 @@
     "multer": "1.4.4",
     "multer-s3": "^3.0.1",
     "nodemailer": "^6.9.1",
+    "openai": "^4.25.0",
     "passport": "^0.7.0",
     "passport-apple": "^2.0.2",
     "passport-facebook": "^3.0.0",

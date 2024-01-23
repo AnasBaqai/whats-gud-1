@@ -1,7 +1,7 @@
 exports.getPostsQuery = (currentUserId, postId = null) => {
   return [
     {
-      $match: postId ? { _id: postId } : {},
+      $match: postId ? { _id: postId} : {isDeleted:false },
     },
     {
       $lookup: {
@@ -35,10 +35,57 @@ exports.getPostsQuery = (currentUserId, postId = null) => {
         numberOfComments: { $size: "$comments" },
         numberOfShares: { $size: "$shares" },
         createdAt: 1,
+        isDeleted:1
       },
     },
   ];
 };
+
+
+exports.getDeletedPostsQuery = (currentUserId) => {
+  return [
+    {
+      $match:{postedBy:currentUserId,isDeleted:true}
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "postedBy",
+        foreignField: "_id",
+        as: "postedBy",
+      },
+    },
+    {
+      $unwind: "$postedBy",
+    },
+    {
+      $project: {
+        content: 1,
+        media: 1,
+        postedBy: {
+          firstName: 1,
+          lastName: 1,
+          email: 1,
+          image: 1,
+          _id: 1,
+        },
+        // likes: 1,
+        // comments: 1,
+        // shares: 1,
+        isLiked: {
+          $in: [currentUserId, "$likes"],
+        },
+        numberOfLikes: { $size: "$likes" },
+        numberOfComments: { $size: "$comments" },
+        numberOfShares: { $size: "$shares" },
+        createdAt: 1,
+        isDeleted:1
+
+      },
+    },
+  ];
+};
+
 
 exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
   return [
