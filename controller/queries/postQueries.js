@@ -1,7 +1,21 @@
-exports.getPostsQuery = (currentUserId, postId = null) => {
+exports.getPostsQuery = (
+  currentUserId,
+  following = [],
+  followers = [],
+  postId = null
+) => {
   return [
     {
-      $match: postId ? { _id: postId} : {isDeleted:false },
+      $match: postId
+        ? { _id: postId }
+        : {
+            isDeleted: false,
+            $or: [
+              { postedBy: currentUserId }, // Posts by the current user
+              { postedBy: { $in: following } }, // Posts by users the current user is following
+              { postedBy: { $in: followers } }, // Posts by users who are followers of the current user
+            ],
+          },
     },
     {
       $lookup: {
@@ -35,17 +49,16 @@ exports.getPostsQuery = (currentUserId, postId = null) => {
         numberOfComments: { $size: "$comments" },
         numberOfShares: { $size: "$shares" },
         createdAt: 1,
-        isDeleted:1
+        isDeleted: 1,
       },
     },
   ];
 };
-
 
 exports.getDeletedPostsQuery = (currentUserId) => {
   return [
     {
-      $match:{postedBy:currentUserId,isDeleted:true}
+      $match: { postedBy: currentUserId, isDeleted: true },
     },
     {
       $lookup: {
@@ -79,13 +92,11 @@ exports.getDeletedPostsQuery = (currentUserId) => {
         numberOfComments: { $size: "$comments" },
         numberOfShares: { $size: "$shares" },
         createdAt: 1,
-        isDeleted:1
-
+        isDeleted: 1,
       },
     },
   ];
 };
-
 
 exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
   return [
@@ -145,7 +156,7 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
       $group: {
         _id: "$_id",
         content: { $first: "$content" },
-        media: { $first: "$media" }, 
+        media: { $first: "$media" },
         createdAt: { $first: "$createdAt" },
         commentedBy: { $first: "$commentedBy" },
         likes: { $first: "$likes" },
@@ -153,11 +164,11 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
           $push: {
             $cond: [
               { $eq: ["$replies", {}] }, // Check if replies is an empty object
-              "$$REMOVE",               // Remove it if true
-              "$replies"                // Otherwise, keep the reply
-            ]
-          }
-        }
+              "$$REMOVE", // Remove it if true
+              "$replies", // Otherwise, keep the reply
+            ],
+          },
+        },
       },
     },
     // Project to reshape the output
@@ -206,8 +217,8 @@ exports.getCommentsOfPostQuery = (currentUserId, commentIds) => {
   ];
 };
 
-exports.getLikedUsersOfPostQuery = (postId,currentUserId) => {
-  return[
+exports.getLikedUsersOfPostQuery = (postId, currentUserId) => {
+  return [
     { $match: { _id: postId } },
     {
       $addFields: {
@@ -217,73 +228,84 @@ exports.getLikedUsersOfPostQuery = (postId,currentUserId) => {
             as: "like",
             in: {
               like: "$$like",
-              idx: { $indexOfArray: ["$likes", "$$like"] }
-            }
-          }
-        }
-      }
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'likes.like',
-        foreignField: '_id',
-        as: 'likedUsers',
+              idx: { $indexOfArray: ["$likes", "$$like"] },
+            },
+          },
+        },
       },
     },
     {
-      $unwind: '$likedUsers',
+      $lookup: {
+        from: "users",
+        localField: "likes.like",
+        foreignField: "_id",
+        as: "likedUsers",
+      },
+    },
+    {
+      $unwind: "$likedUsers",
     },
     {
       $set: {
         likedUsers: {
           $mergeObjects: [
-            { $arrayElemAt: ["$likes", { $indexOfArray: ["$likes.like", "$likedUsers._id"] }] },
-            "$likedUsers"
-          ]
-        }
-      }
+            {
+              $arrayElemAt: [
+                "$likes",
+                { $indexOfArray: ["$likes.like", "$likedUsers._id"] },
+              ],
+            },
+            "$likedUsers",
+          ],
+        },
+      },
     },
     {
-      $sort: { "likedUsers.idx": 1 }
+      $sort: { "likedUsers.idx": 1 },
     },
     {
       $lookup: {
-        from: 'relations',
-        let: { likedUserId: '$likedUsers._id', currentUserId: currentUserId },
+        from: "relations",
+        let: { likedUserId: "$likedUsers._id", currentUserId: currentUserId },
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ['$user', '$$currentUserId'] },
-                  { $in: ['$$likedUserId', '$following'] },
+                  { $eq: ["$user", "$$currentUserId"] },
+                  { $in: ["$$likedUserId", "$following"] },
                 ],
               },
             },
           },
         ],
-        as: 'relation',
+        as: "relation",
       },
     },
     {
       $addFields: {
         "likedUsers.isFollowing": {
           $cond: {
-            if: { $eq: ['$likedUsers._id', currentUserId] },
-            then: '$$REMOVE',
-            else: { $cond: { if: { $gt: [{ $size: '$relation' }, 0] }, then: true, else: false } },
+            if: { $eq: ["$likedUsers._id", currentUserId] },
+            then: "$$REMOVE",
+            else: {
+              $cond: {
+                if: { $gt: [{ $size: "$relation" }, 0] },
+                then: true,
+                else: false,
+              },
+            },
           },
         },
       },
     },
     {
-      $replaceRoot: { newRoot: '$likedUsers' },
+      $replaceRoot: { newRoot: "$likedUsers" },
     },
     {
       $addFields: {
-        idx: '$$REMOVE' // Remove the idx field here
-      }
+        idx: "$$REMOVE", // Remove the idx field here
+      },
     },
     {
       $project: {
@@ -296,10 +318,9 @@ exports.getLikedUsersOfPostQuery = (postId,currentUserId) => {
       },
     },
     // ... rest of your pipeline ...
-  ]
-  
+  ];
 };
- // pipeline with isfollowing coming with current userid
+// pipeline with isfollowing coming with current userid
 // [
 //   { $match: { _id: postId } }, // Match the specific post by ID
 //   {

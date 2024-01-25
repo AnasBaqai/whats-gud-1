@@ -25,6 +25,7 @@ const {
   getLikedUsersOfPostQuery,
   getDeletedPostsQuery,
 } = require("./queries/postQueries");
+const { findRelation } = require("../models/relationModel");
 
 // create post
 exports.createPostController = async (req, res, next) => {
@@ -238,7 +239,11 @@ exports.getAllPostsController = async (req, res, next) => {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
     const currentUserId = mongoose.Types.ObjectId(req.user.id);
-    const query = getPostsQuery(currentUserId);
+    // GET user following and followers
+    const { following, followers } = await findRelation({user:currentUserId});
+    console.log("followers",followers)
+    console.log("following",following)
+    const query = getPostsQuery(currentUserId, following, followers);
     const result = await getAllPosts({ query, page, limit });
     return generateResponse(
       { post: result },
