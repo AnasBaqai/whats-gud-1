@@ -204,7 +204,7 @@ exports.getFavEventsController = async (req, res, next) => {
       query: pipeline,
       page,
       limit,
-      responseKey: "fav events",
+      responseKey: "favEvents",
     });
    
     return generateResponse(result, "Events fetched successfully", res);
