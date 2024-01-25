@@ -76,7 +76,7 @@ exports.getProfileCount = async (req, res, next) => {
         followersCount,
         followingCount,
         eventsCreated: eventCount,
-        eventsAttended: eventsAttended[0].totalCount,
+        eventsAttended:eventsAttended.length!==0?eventsAttended[0].totalCount: 0,
       },
       "Followers and following count fetched",
       res

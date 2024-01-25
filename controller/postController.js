@@ -24,6 +24,7 @@ const {
   getCommentsOfPostQuery,
   getLikedUsersOfPostQuery,
   getDeletedPostsQuery,
+  getPostsOfaUserQuery,
 } = require("./queries/postQueries");
 const { findRelation } = require("../models/relationModel");
 
@@ -401,3 +402,26 @@ exports.retrieveDeletedPostsController = async (req, res, next) => {
     });
   }
 }
+
+
+//get post of a user 
+exports.getPostOfUserController = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page)||1;
+    const limit = parseInt(req.query.limit)||10;
+    const currentUserId = mongoose.Types.ObjectId(req.user.id);
+    const query =getPostsOfaUserQuery(currentUserId);
+    const result = await getAllPosts({ query, page, limit ,responseKey:"userPosts"});
+    return generateResponse(
+      result,
+      "Posts fetched successfully",
+      res
+    );
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
