@@ -38,3 +38,6 @@ exports.getAllComments = async ({ query, page, limit, responseKey = "data" }) =>
   return { data, pagination };
 }
 
+
+// delete comment
+exports.deleteComment = (query) => CommentModel.deleteOne(query);

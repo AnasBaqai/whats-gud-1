@@ -9,6 +9,7 @@ const {
   findComment,
   updateComment,
   getAllComments,
+  deleteComment,
 } = require("../models/commentModel");
 const { createReply, findReply, updateReply } = require("../models/replymodel");
 const { parseBody, generateResponse } = require("../utils");
@@ -425,3 +426,32 @@ exports.getPostOfUserController = async (req, res, next) => {
     });
   }
 };
+
+// delete comment 
+
+exports.deleteCommentController = async (req, res, next) => {
+  try {
+    const commentId = mongoose.Types.ObjectId(req.params.commentId);
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const comment = await findComment({ _id: commentId });
+
+    if (!comment)
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "Comment not found",
+      });
+    if (comment.commentedBy.toString() !== userId.toString())
+      return next({
+        statusCode: STATUS_CODES.UNAUTHORIZED,
+        message: "You are not authorized to delete this comment",
+      });
+    await deleteComment({ _id: commentId });
+    return generateResponse({deleteStatus:true}, "Comment deleted successfully", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}
