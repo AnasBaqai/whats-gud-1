@@ -61,9 +61,9 @@ exports.getAllEventsController = async (req, res, next) => {
     let pipeline;
     if (req.query.mainCategoryId) {
       const mainCategoryId = mongoose.Types.ObjectId(req.query.mainCategoryId);
-      pipeline = getAllEventsQuery(mainCategoryId, subCategoryIds, userId); // For specific category
+      pipeline = getAllEventsQuery(mainCategoryId,null, subCategoryIds, userId); // For specific category
     } else {
-      pipeline = getAllEventsQuery(null, subCategoryIds, userId); // For all events
+      pipeline = getAllEventsQuery(null,null, subCategoryIds, userId); // For all events
     }
 
     pipeline.unshift({
