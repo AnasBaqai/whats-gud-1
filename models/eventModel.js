@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 const aggregatePaginate = require("mongoose-aggregate-paginate-v2");
 const { getMongooseAggregatePaginatedData } = require("../utils");
-
+const {EVENT_STATUS} = require("../utils/constants");
 const eventSchema = new Schema(
   {
     category: {
@@ -76,6 +76,7 @@ const eventSchema = new Schema(
     capacity: { type: Number, required: true },
     isApproved: { type: Boolean, default: false },
     favorites: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    status: { type: String, default: EVENT_STATUS.REVIEWING, enum: Object.values(EVENT_STATUS) },
     
     // Additional fields like 'created_at', 'updated_at', or 'isApproved' can be added as needed
   },

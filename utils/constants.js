@@ -28,3 +28,11 @@ exports.STATUS_CODES = Object.freeze({
   UNPROCESSABLE_ENTITY: 422,
   INTERNAL_SERVER_ERROR: 500,
 });
+
+exports.EVENT_STATUS = Object.freeze({
+  SUBMITTED: "submitted",
+  REVIEWING: "reviewing",
+  CHANGES: "changes",
+  APPROVED: "approved",
+  DECLINED: "declined",
+});

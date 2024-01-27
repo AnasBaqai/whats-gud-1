@@ -13,7 +13,7 @@ const { STATUS_CODES } = require("../utils/constants");
 const { s3Uploadv3 } = require("../utils/s3Upload");
 const { eventValidation } = require("../validation/eventValidation");
 const mongoose = require("mongoose");
-const { getAllEventsQuery, getFavEventsQuery } = require("./queries/eventQueries");
+const { getAllEventsQuery, getFavEventsQuery, getuserCreatedEventsQuery } = require("./queries/eventQueries");
 const { findUser } = require("../models/userModel");
 const { locationValidation } = require("../validation/userValidation");
 
@@ -97,7 +97,7 @@ exports.getEventByIdController = async (req, res, next) => {
   try {
     const eventId = mongoose.Types.ObjectId(req.params.eventId);
     const userId = mongoose.Types.ObjectId(req.user.id);
-    const pipeline = getAllEventsQuery(eventId, [], userId);
+    const pipeline = getAllEventsQuery(null,eventId, [], userId);
     const result = await getAllEvents({
       query: pipeline,
       page: 1,
@@ -218,65 +218,25 @@ exports.getFavEventsController = async (req, res, next) => {
 };
 
 
-/*
-const NodeGeocoder = require('node-geocoder');
-
-// Set up the geocoder
-const options = {
-  provider: 'google',
-  // Optional depending on the providers
-  httpAdapter: 'https', 
-  apiKey: 'YOUR_API_KEY', // Replace with your Google Maps API key
-  formatter: null
-};
-
-const geocoder = NodeGeocoder(options);
-
-exports.createEventController = async (req, res, next) => {
+// FUNCTION TO GET EVENTS BY USER ID
+exports.getEventsByUserIdController = async (req, res, next) => {
   try {
-    const body = parseBody(req.body);
-
-    // Geocode the address to get coordinates
-    if (!body.address) {
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: "Address is required",
-      });
-    }
-
-    const geocodeResult = await geocoder.geocode(body.address);
-    if (geocodeResult.length === 0) {
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: "Geocoding failed or address is invalid",
-      });
-    }
-
-    const newEvent = {
-      ...body,
-      creator: req.user.id,
-      location: {
-        type: 'Point',
-        coordinates: [geocodeResult[0].longitude, geocodeResult[0].latitude]
-      }
-    };
-
-    const { error } = eventValidation.validate(newEvent);
-    if (error) {
-      return next({
-        statusCode: STATUS_CODES.BAD_REQUEST,
-        message: error.details[0].message,
-      });
-    }
-
-    const event = await createEvent(newEvent);
-    return generateResponse(event, "Event created successfully", res);
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+    const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
+    const pipeline = getuserCreatedEventsQuery(userId);
+    const result = await getAllEvents({
+      query: pipeline,
+      page,
+      limit,
+      responseKey: "events",
+    });
+    return generateResponse(result, "Events fetched successfully", res);
   } catch (error) {
     console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
-      message: "Internal server error",
+      message: "internal server error",
     });
   }
 };
-*/
