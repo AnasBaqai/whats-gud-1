@@ -2,7 +2,7 @@
 
 const multer = require("multer");
 const fs = require("fs");
-// const FCM = require('fcm-node');
+const FCM = require('fcm-node');
 const { STATUS_CODES } = require("./constants");
 const axios = require("axios");
 const moment = require("moment");
@@ -186,25 +186,25 @@ exports.upload = (folderName) => {
   });
 };
 
-// exports.sendNotificationToAll = ({ body, fcmTokens }) => {
-//     const serverKey = process.env.FIREBASE_SERVER_KEY;
-//     const fcm = new FCM(serverKey);
-//     const title = process.env.APP_NAME;
+exports.sendNotificationToAll = ({ body, fcmTokens }) => {
+    const serverKey = process.env.FIREBASE_SERVER_KEY;
+    const fcm = new FCM(serverKey);
+    const title = process.env.APP_NAME;
 
-//     const message = {
-//         // the registration tokens of the devices you want to send the message to
-//         registration_ids: [...fcmTokens],
-//         notification: { title, body },
-//     };
+    const message = {
+        // the registration tokens of the devices you want to send the message to
+        registration_ids: [...fcmTokens],
+        notification: { title, body },
+    };
 
-//     fcm.send(message, function (err, response) {
-//         if (err) {
-//             console.log("FCM - Something has gone wrong!");
-//         } else {
-//             console.log("Successfully sent with response: ", response);
-//         }
-//     });
-// }
+    fcm.send(message, function (err, response) {
+        if (err) {
+            console.log("FCM - Something has gone wrong!");
+        } else {
+            console.log("Successfully sent with response: ", response);
+        }
+    });
+}
 
 exports.sendNotification = ({
   title,
