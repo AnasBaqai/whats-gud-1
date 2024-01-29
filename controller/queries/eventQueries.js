@@ -150,6 +150,32 @@ exports.getAllEventsQuery = (ID = null,eventId=null, subCategoryIds = [], curren
       },
     },
 
+  // Check if currentUserId follows the creator
+  {
+    $lookup: {
+      from: "relations", // Replace with your Relation collection name
+      let: { creatorId: "$creator.id" },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ["$user", currentUserId] },
+                { $in: ["$$creatorId", "$following"] },
+              ],
+            },
+          },
+        },
+        { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
+      ],
+      as: "isFollowingCreator",
+    },
+  },
+  {
+    $addFields: {
+      isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+    },
+  },
     // Project the final structure
     {
       $project: {
@@ -181,6 +207,7 @@ exports.getAllEventsQuery = (ID = null,eventId=null, subCategoryIds = [], curren
         creator: 1,
         capacity: 1,
         hotnessScore: 1,
+        isFollowingCreator: 1,
         isfav: {
           $in: [
             currentUserId,
@@ -319,6 +346,32 @@ exports.getFavEventsQuery = (currentUserId) => {
         },
       },
     },
+     // Check if currentUserId follows the creator
+  {
+    $lookup: {
+      from: "relations", // Replace with your Relation collection name
+      let: { creatorId: "$creator.id" },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $and: [
+                { $eq: ["$user", currentUserId] },
+                { $in: ["$$creatorId", "$following"] },
+              ],
+            },
+          },
+        },
+        { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
+      ],
+      as: "isFollowingCreator",
+    },
+  },
+  {
+    $addFields: {
+      isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+    },
+  },
 
     // Project the final structure
     {
@@ -351,6 +404,7 @@ exports.getFavEventsQuery = (currentUserId) => {
         creator: 1,
         capacity: 1,
         hotnessScore: 1,
+        isFollowingCreator: 1,
         isfav: {
           $in: [
             currentUserId,
@@ -489,7 +543,32 @@ exports.getuserCreatedEventsQuery = (currentUserId) => {
         },
       },
     },
-
+ // Check if currentUserId follows the creator
+ {
+  $lookup: {
+    from: "relations", // Replace with your Relation collection name
+    let: { creatorId: "$creator.id" },
+    pipeline: [
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $eq: ["$user", currentUserId] },
+              { $in: ["$$creatorId", "$following"] },
+            ],
+          },
+        },
+      },
+      { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
+    ],
+    as: "isFollowingCreator",
+  },
+},
+{
+  $addFields: {
+    isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+  },
+},
     // Project the final structure
     {
       $project: {
@@ -521,6 +600,7 @@ exports.getuserCreatedEventsQuery = (currentUserId) => {
         creator: 1,
         capacity: 1,
         hotnessScore: 1,
+        isFollowingCreator: 1,
         isfav: {
           $in: [
             currentUserId,
