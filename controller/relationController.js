@@ -12,7 +12,6 @@ exports.toggleFollowUser = async (req, res, next) => {
 
     // Check the current state of the relationship
     const relation = await findRelation({ user: currentUserId });
-    console.log(relation);
     const isFollowing = relation.following.includes(targetUserId);
     // Prepare update operations based on the current state
     const followerUpdate = isFollowing
@@ -30,7 +29,7 @@ exports.toggleFollowUser = async (req, res, next) => {
       followingUpdate
     );
     return generateResponse(
-      updatedRelation,
+      {followingStatus: !isFollowing},
       `Successfully toggled follow status`,
       res
     );
