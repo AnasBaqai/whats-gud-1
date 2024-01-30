@@ -223,7 +223,7 @@ exports.getFavEventsController = async (req, res, next) => {
 exports.getEventsByUserIdController = async (req, res, next) => {
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
-    const events = getAllEventsWithoutAggregate({ creator: userId }).select("_id eventName ");
+    const events = await getAllEventsWithoutAggregate({ creator: userId }).select("_id eventName");
     return generateResponse(events, "Events fetched successfully", res);
 
     // const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
