@@ -14,7 +14,7 @@ const { STATUS_CODES } = require("../utils/constants");
 const { s3Uploadv3 } = require("../utils/s3Upload");
 const { eventValidation } = require("../validation/eventValidation");
 const mongoose = require("mongoose");
-const { getAllEventsQuery, getFavEventsQuery, getuserCreatedEventsQuery } = require("./queries/eventQueries");
+const { getAllEventsQuery, getFavEventsQuery, getuserCreatedEventsQuery, getAllUserEventsQuery } = require("./queries/eventQueries");
 const { findUser } = require("../models/userModel");
 const { locationValidation } = require("../validation/userValidation");
 
@@ -223,7 +223,8 @@ exports.getFavEventsController = async (req, res, next) => {
 exports.getEventsByUserIdController = async (req, res, next) => {
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
-    const events = await getAllEventsWithoutAggregate({ creator: userId }).select("_id eventName");
+    query = getAllUserEventsQuery();
+    const events = await findManyEvents(query)
     return generateResponse(events, "Events fetched successfully", res);
 
     // const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided

@@ -616,3 +616,25 @@ exports.getuserCreatedEventsQuery = (currentUserId) => {
     },
   ];
 };
+
+
+exports.getAllUserEventsQuery= ()=>{
+  return [
+    {
+      $project: {
+        _id: 1,
+        eventName: 1,
+        dateAndTime:1,
+        status: {
+          $ifNull: ["$status", EVENT_STATUS.APPROVED],
+        }
+      },
+      
+    },
+    {
+      $sort: {
+        dateAndTime: -1 // 1 for ascending order, -1 for descending order
+      }
+    }
+  ]
+}
