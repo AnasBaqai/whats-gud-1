@@ -223,7 +223,7 @@ exports.getFavEventsController = async (req, res, next) => {
 exports.getEventsByUserIdController = async (req, res, next) => {
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
-    query = getAllUserEventsQuery();
+    query = getAllUserEventsQuery(userId);
     const events = await findManyEvents(query)
     return generateResponse(events, "Events fetched successfully", res);
 

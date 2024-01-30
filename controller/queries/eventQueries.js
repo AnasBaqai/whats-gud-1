@@ -618,8 +618,13 @@ exports.getuserCreatedEventsQuery = (currentUserId) => {
 };
 
 
-exports.getAllUserEventsQuery= ()=>{
+exports.getAllUserEventsQuery= (currentUserId)=>{
   return [
+    {
+      $match: {
+        creator: currentUserId,
+      },
+    },
     {
       $project: {
         _id: 1,
