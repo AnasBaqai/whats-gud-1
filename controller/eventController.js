@@ -3,6 +3,7 @@ const {
   findEvent,
   getAllEvents,
   findManyEvents,
+  getAllEventsWithoutAggregate,
 } = require("../models/eventModel");
 const {
   parseBody,
@@ -222,16 +223,20 @@ exports.getFavEventsController = async (req, res, next) => {
 exports.getEventsByUserIdController = async (req, res, next) => {
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
-    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-    const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
-    const pipeline = getuserCreatedEventsQuery(userId);
-    const result = await getAllEvents({
-      query: pipeline,
-      page,
-      limit,
-      responseKey: "events",
-    });
-    return generateResponse(result, "Events fetched successfully", res);
+    const events = getAllEventsWithoutAggregate({ creator: userId }).select("_id eventName ");
+    return generateResponse(events, "Events fetched successfully", res);
+
+    // const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+    // const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
+    // const pipeline = getuserCreatedEventsQuery(userId);
+    // const result = await getAllEvents({
+    //   query: pipeline,
+    //   page,
+    //   limit,
+    //   responseKey: "events",
+    // });
+    // return generateResponse(result, "Events fetched successfully", res);
+
   } catch (error) {
     console.log(error.message);
     return next({

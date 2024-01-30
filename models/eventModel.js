@@ -105,6 +105,13 @@ exports.countEventDocumentsByUser = (query) => Event.countDocuments(query);
 //find many events
 exports.findManyEvents = (query) => Event.aggregate(query);
 
+// get all events through mongoose
+
+exports.getAllEventsWithoutAggregate = (query) => Event.find(query);  
+
+
+// get all events
+
 exports.getAllEvents = async ({ query, page, limit, responseKey = "data" }) => {
   const { data, pagination } = await getMongooseAggregatePaginatedData({
     model: Event,

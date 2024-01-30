@@ -205,7 +205,7 @@ exports.setUserAvatar = async (req, res, next) => {
     const updatedUser = await updateUser(
       { _id: mongoose.Types.ObjectId(userId) },
       {
-        avatar,
+        image:avatar,
       }
     );
     return generateResponse(updatedUser, "User avatar updated", res);

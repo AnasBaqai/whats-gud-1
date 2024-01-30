@@ -61,6 +61,6 @@ exports.profileValidation = Joi.object({
     .min(3)
     .max(30)
     .allow(null, ""),
-  dob: Joi.string().regex(/^(?:\d{2}|\d{4})-(?:\d{1,2})-(?:\d{1,2})$/),
+  dob: Joi.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/),
   gender: Joi.string(),
 });
