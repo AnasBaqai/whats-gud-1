@@ -246,3 +246,34 @@ exports.getEventsByUserIdController = async (req, res, next) => {
     });
   }
 };
+
+
+//set event status 
+
+exports.setEventStatusController = async (req, res, next) => {
+  try {
+    const eventId = mongoose.Types.ObjectId(req.params.eventId);
+    const event = await findEvent({ _id: eventId });
+    if (!event) {
+      return next({
+        statusCode: STATUS_CODES.NOT_FOUND,
+        message: "Event not found",
+      });
+    }
+    const { status } = req.body;
+    event.status = status;
+    await event.save();
+    return generateResponse(
+      { status: event.status },
+      "Event status updated successfully",
+      res
+    );
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+
+}

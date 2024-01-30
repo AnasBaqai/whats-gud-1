@@ -1,6 +1,6 @@
 "use strict";
 const { STATUS_CODES } = require("../utils/constants");
-const { parseBody, generateResponse } = require("../utils");
+const { parseBody, generateResponse, getReverseGeocodingData } = require("../utils");
 const { updateUser, findUser, findUsers } = require("../models/userModel");
 const {
   updateProfileValidation,
@@ -123,10 +123,13 @@ exports.updateLocation = async (req, res, next) => {
         message: error.message,
       });
     const userId = req.user.id;
+    const address= await getReverseGeocodingData(latitude, longitude);
+    console.log(address);
     const updatedUser = await updateUser(
       { _id: mongoose.Types.ObjectId(userId) },
       {
         location,
+        address
       }
     );
     return generateResponse(updatedUser, "Location updated", res);
