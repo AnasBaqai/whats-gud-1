@@ -5,6 +5,7 @@ const {
   toggleFollowUser,
   getProfileCount,
   getAnyUserProfileCount,
+  getMutualConnectionList
 } = require("../controller/relationController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
@@ -30,6 +31,11 @@ class relationAPI {
       "/profile/count/:id",
       auth([ROLES.USER, ROLES.ADMIN]),
       getAnyUserProfileCount
+    );
+    router.get(
+      "/mutual/connection",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      getMutualConnectionList
     );
   }
 

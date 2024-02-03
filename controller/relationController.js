@@ -148,3 +148,28 @@ exports.getAnyUserProfileCount = async (req, res, next) => {
     });
   }
 };
+
+
+// send list of users only which are following the user and user is following
+exports.getMutualConnectionList = async (req, res, next) => {
+  try {
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const relation = await findRelation({ user: userId });
+    const mutualConnections = relation.followers.filter(follower => 
+      relation.following.includes(follower)
+    );
+    const mutualConnectionsList = await findUser({ _id: { $in: mutualConnections } }).select("firstName lastName image _id email");
+
+    return generateResponse(
+     mutualConnectionsList,
+      "Followers and following list fetched",
+      res
+    );
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
