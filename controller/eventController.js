@@ -14,7 +14,12 @@ const { STATUS_CODES } = require("../utils/constants");
 const { s3Uploadv3 } = require("../utils/s3Upload");
 const { eventValidation } = require("../validation/eventValidation");
 const mongoose = require("mongoose");
-const { getAllEventsQuery, getFavEventsQuery, getuserCreatedEventsQuery, getAllUserEventsQuery } = require("./queries/eventQueries");
+const {
+  getAllEventsQuery,
+  getFavEventsQuery,
+  getuserCreatedEventsQuery,
+  getAllUserEventsQuery,
+} = require("./queries/eventQueries");
 const { findUser } = require("../models/userModel");
 const { locationValidation } = require("../validation/userValidation");
 
@@ -62,11 +67,15 @@ exports.getAllEventsController = async (req, res, next) => {
     let pipeline;
     if (req.query.mainCategoryId) {
       const mainCategoryId = mongoose.Types.ObjectId(req.query.mainCategoryId);
-      pipeline = getAllEventsQuery(mainCategoryId,null, subCategoryIds, userId); // For specific category
+      pipeline = getAllEventsQuery(
+        mainCategoryId,
+        null,
+        subCategoryIds,
+        userId
+      ); // For specific category
     } else {
-      pipeline = getAllEventsQuery(null,null, subCategoryIds, userId); // For all events
+      pipeline = getAllEventsQuery(null, null, subCategoryIds, userId); // For all events
     }
-
     pipeline.unshift({
       $geoNear: {
         near: { type: "Point", coordinates: user.location.coordinates },
@@ -98,7 +107,7 @@ exports.getEventByIdController = async (req, res, next) => {
   try {
     const eventId = mongoose.Types.ObjectId(req.params.eventId);
     const userId = mongoose.Types.ObjectId(req.user.id);
-    const pipeline = getAllEventsQuery(null,eventId, [], userId);
+    const pipeline = getAllEventsQuery(null, eventId, [], userId);
     const result = await getAllEvents({
       query: pipeline,
       page: 1,
@@ -207,7 +216,7 @@ exports.getFavEventsController = async (req, res, next) => {
       limit,
       responseKey: "favEvents",
     });
-   
+
     return generateResponse(result, "Events fetched successfully", res);
   } catch (error) {
     console.log(error.message);
@@ -218,26 +227,38 @@ exports.getFavEventsController = async (req, res, next) => {
   }
 };
 
-
 // FUNCTION TO GET EVENTS BY USER ID
 exports.getEventsByUserIdController = async (req, res, next) => {
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
+
     query = getAllUserEventsQuery(userId);
-    const events = await findManyEvents(query)
+    const events = await findManyEvents(query);
     return generateResponse(events, "Events fetched successfully", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+exports.getUserProfileEvents = async (req, res, next) => {
+  try {
+    const userId = mongoose.Types.ObjectId(req.params.userId);
+    const currentUserId = mongoose.Types.ObjectId(req.user.id);
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+    const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
 
-    // const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-    // const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
-    // const pipeline = getuserCreatedEventsQuery(userId);
-    // const result = await getAllEvents({
-    //   query: pipeline,
-    //   page,
-    //   limit,
-    //   responseKey: "events",
-    // });
-    // return generateResponse(result, "Events fetched successfully", res);
+    query = getuserCreatedEventsQuery(userId,currentUserId);
 
+    const events = await getAllEvents({
+      query,
+      page,
+      limit,
+      responseKey: "favEvents",
+    });
+    return generateResponse(events, "Events fetched successfully", res);
   } catch (error) {
     console.log(error.message);
     return next({
@@ -247,8 +268,7 @@ exports.getEventsByUserIdController = async (req, res, next) => {
   }
 };
 
-
-//set event status 
+//set event status
 
 exports.setEventStatusController = async (req, res, next) => {
   try {
@@ -275,5 +295,4 @@ exports.setEventStatusController = async (req, res, next) => {
       message: "internal server error",
     });
   }
-
-}
+};

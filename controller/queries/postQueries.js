@@ -50,17 +50,16 @@ exports.getPostsQuery = (
         numberOfShares: { $size: "$shares" },
         createdAt: 1,
         isDeleted: 1,
+        tags: 1,
       },
     },
   ];
 };
 
-exports.getPostsOfaUserQuery = (
-  currentUserId,
-) => {
+exports.getPostsOfaUserQuery = (currentUserId) => {
   return [
     {
-      $match: {postedBy: currentUserId, isDeleted: false}
+      $match: { postedBy: currentUserId, isDeleted: false },
     },
     {
       $lookup: {
@@ -95,6 +94,63 @@ exports.getPostsOfaUserQuery = (
         numberOfShares: { $size: "$shares" },
         createdAt: 1,
         isDeleted: 1,
+        tags: 1,
+      },
+    },
+  ];
+};
+exports.getPostsOfUserTaggedInQuery = (currentUserId, userId=null) => {
+  let matchCondition;
+  if (userId) {
+    matchCondition = {
+      postedBy: userId,
+      isDeleted: false,
+      tags:  { $in: [currentUserId] }, // Assuming 'tags' is an array of tagged user IDs
+    };
+  } else {
+    matchCondition = {
+      isDeleted: false,
+      tags:  { $in: [currentUserId] }, // Assuming 'tags' is an array of tagged user IDs
+    };
+  }
+  return [
+    {
+      $match: matchCondition
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "postedBy",
+        foreignField: "_id",
+        as: "postedBy",
+      },
+    },
+    {
+      $unwind: "$postedBy",
+    },
+    {
+      $project: {
+        content: 1,
+        media: 1,
+        postedBy: {
+          firstName: 1,
+          lastName: 1,
+          email: 1,
+          image: 1,
+          _id: 1,
+        },
+        // likes: 1,
+        // comments: 1,
+        // shares: 1,
+        isLiked: {
+          $in: [currentUserId, "$likes"],
+        },
+        numberOfLikes: { $size: "$likes" },
+        numberOfComments: { $size: "$comments" },
+        numberOfShares: { $size: "$shares" },
+        createdAt: 1,
+        isDeleted: 1,
+        tags: 1,
       },
     },
   ];
@@ -138,6 +194,7 @@ exports.getDeletedPostsQuery = (currentUserId) => {
         numberOfShares: { $size: "$shares" },
         createdAt: 1,
         isDeleted: 1,
+        tags: 1,
       },
     },
   ];

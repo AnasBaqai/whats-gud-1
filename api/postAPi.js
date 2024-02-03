@@ -16,6 +16,7 @@ const {
   retrieveDeletedPostsController,
   getPostOfUserController,
   deleteCommentController,
+  getPostsOfUserTaggedInController
 } = require("../controller/postController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
@@ -88,6 +89,11 @@ class postAPI {
       "/comment/:commentId",
       auth([ROLES.USER, ROLES.ADMIN]),
       deleteCommentController
+    );
+    router.get(
+      "/tagged/user",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      getPostsOfUserTaggedInController
     );
   }
 

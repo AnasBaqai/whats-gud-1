@@ -1,7 +1,11 @@
 "use strict";
 
 const { Router } = require("express");
-const { toggleFollowUser,getProfileCount } = require("../controller/relationController");
+const {
+  toggleFollowUser,
+  getProfileCount,
+  getAnyUserProfileCount,
+} = require("../controller/relationController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
 class relationAPI {
@@ -21,6 +25,11 @@ class relationAPI {
       "/profile/count",
       auth([ROLES.USER, ROLES.ADMIN]),
       getProfileCount
+    );
+    router.get(
+      "/profile/count/:id",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      getAnyUserProfileCount
     );
   }
 

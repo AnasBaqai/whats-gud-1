@@ -26,6 +26,7 @@ const {
   getLikedUsersOfPostQuery,
   getDeletedPostsQuery,
   getPostsOfaUserQuery,
+  getPostsOfUserTaggedInQuery,
 } = require("./queries/postQueries");
 const { findRelation } = require("../models/relationModel");
 
@@ -33,11 +34,12 @@ const { findRelation } = require("../models/relationModel");
 exports.createPostController = async (req, res, next) => {
   try {
     const body = parseBody(req.body);
-    const { content, media } = body;
+    const { content, media, tags } = body;
     const userId = req.user.id;
     const newPost = {
       content,
       media,
+      tags: tags ? tags : [],
       postedBy: userId,
     };
     const { error } = postValidation.validate(newPost);
@@ -242,9 +244,11 @@ exports.getAllPostsController = async (req, res, next) => {
     const limit = parseInt(req.query.limit);
     const currentUserId = mongoose.Types.ObjectId(req.user.id);
     // GET user following and followers
-    const { following, followers } = await findRelation({user:currentUserId});
-    console.log("followers",followers)
-    console.log("following",following)
+    const { following, followers } = await findRelation({
+      user: currentUserId,
+    });
+    console.log("followers", followers);
+    console.log("following", following);
     const query = getPostsQuery(currentUserId, following, followers);
     const result = await getAllPosts({ query, page, limit });
     return generateResponse(
@@ -345,8 +349,7 @@ exports.getAllLikesController = async (req, res, next) => {
   }
 };
 
-
-// delete post 
+// delete post
 exports.deletePostController = async (req, res, next) => {
   try {
     const postId = mongoose.Types.ObjectId(req.params.postId);
@@ -369,7 +372,11 @@ exports.deletePostController = async (req, res, next) => {
         message: "Post already deleted",
       });
     await updatePost({ _id: postId }, { isDeleted: true });
-    return generateResponse({deleteStatus:true}, "Post deleted successfully", res);
+    return generateResponse(
+      { deleteStatus: true },
+      "Post deleted successfully",
+      res
+    );
   } catch (error) {
     console.log(error.message);
     return next({
@@ -379,45 +386,57 @@ exports.deletePostController = async (req, res, next) => {
   }
 };
 
-// retrieve deleted posts 
+// retrieve deleted posts
 
 exports.retrieveDeletedPostsController = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
+    let currentUserId;
+    if (req.query.userId) {
+      currentUserId = mongoose.Types.ObjectId(req.query.userId);
+    } else {
+      currentUserId = mongoose.Types.ObjectId(req.user.id);
+    }
 
-    const currentUserId = mongoose.Types.ObjectId(req.user.id);
-    console.log(currentUserId)
+     
     const query = getDeletedPostsQuery(currentUserId);
-    const result = await getAllPosts({ query, page, limit ,responseKey:"deletedPosts"});
-    return generateResponse(
-      result ,
-      "deleted Posts fetched successfully",
-      res
-    );
+    const result = await getAllPosts({
+      query,
+      page,
+      limit,
+      responseKey: "deletedPosts",
+    });
+    return generateResponse(result, "deleted Posts fetched successfully", res);
   } catch (error) {
-    console.log("here",error.message);
+    console.log("here", error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
     });
   }
-}
+};
 
-
-//get post of a user 
+//get post of a user
 exports.getPostOfUserController = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page)||1;
-    const limit = parseInt(req.query.limit)||10;
-    const currentUserId = mongoose.Types.ObjectId(req.user.id);
-    const query =getPostsOfaUserQuery(currentUserId);
-    const result = await getAllPosts({ query, page, limit ,responseKey:"userPosts"});
-    return generateResponse(
-      result,
-      "Posts fetched successfully",
-      res
-    );
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    let currentUserId;
+    if (req.query.userId) {
+      currentUserId = mongoose.Types.ObjectId(req.query.userId);
+    } else {
+      currentUserId = mongoose.Types.ObjectId(req.user.id);
+    }
+    const query = getPostsOfaUserQuery(currentUserId);
+    const result = await getAllPosts({
+      query,
+      page,
+      limit,
+      responseKey: "userPosts",
+    });
+    return generateResponse(result, "Posts fetched successfully", res);
   } catch (error) {
     console.log(error.message);
     return next({
@@ -427,7 +446,7 @@ exports.getPostOfUserController = async (req, res, next) => {
   }
 };
 
-// delete comment 
+// delete comment
 
 exports.deleteCommentController = async (req, res, next) => {
   try {
@@ -446,9 +465,45 @@ exports.deleteCommentController = async (req, res, next) => {
         message: "You are not authorized to delete this comment",
       });
     await deleteComment({ _id: commentId });
-    return generateResponse({deleteStatus:true}, "Comment deleted successfully", res);
+    return generateResponse(
+      { deleteStatus: true },
+      "Comment deleted successfully",
+      res
+    );
   } catch (error) {
     console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// get posts in which a user is tagged in
+
+exports.getPostsOfUserTaggedInController = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page)||1;
+    const limit = parseInt(req.query.limit)||10;
+    const currentUserId = mongoose.Types.ObjectId(req.user.id);
+    let userId = req.query.userId
+
+    let query;
+    if(!userId){
+      query = getPostsOfUserTaggedInQuery(currentUserId);
+    }else{
+      userId = mongoose.Types.ObjectId(userId);
+      query = getPostsOfUserTaggedInQuery(currentUserId,userId);
+    }
+    const result = await getAllPosts({
+      query,
+      page,
+      limit,
+      responseKey: "taggedPosts",
+    });
+    return generateResponse(result, "Posts fetched successfully", res);
+  } catch (error) {
+    console.log("here", error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",

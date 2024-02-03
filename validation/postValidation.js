@@ -11,6 +11,7 @@ exports.postValidation = Joi.object({
   content: Joi.string().required(),
   media: Joi.array().items(Joi.string()), // Array of media URLs
   postedBy: Joi.custom(objectId, 'Object ID validation').required(),
+  tags:Joi.array().items(objectId, 'Object ID validation'),
 });
 
 

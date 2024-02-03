@@ -421,11 +421,11 @@ exports.getFavEventsQuery = (currentUserId) => {
   ];
 };
 
-exports.getuserCreatedEventsQuery = (currentUserId) => {
+exports.getuserCreatedEventsQuery = (userId,currentUserId) => {
   return [
     {
       $match: {
-        creator: currentUserId,
+        creator: userId,
       },
     },
     // Populate the main category
@@ -619,6 +619,7 @@ exports.getuserCreatedEventsQuery = (currentUserId) => {
 
 
 exports.getAllUserEventsQuery= (currentUserId)=>{
+
   return [
     {
       $match: {

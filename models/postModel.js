@@ -12,6 +12,7 @@ const postSchema = new Schema(
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
     shares: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Array of user IDs who shared the post
+    tags: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
@@ -21,13 +22,14 @@ postSchema.plugin(aggregatePaginate);
 
 const PostModel = model("Post", postSchema);
 
-
 // create post
 
 exports.createPost = (obj) => PostModel.create(obj);
 
 // find post by query
 exports.findPost = (query) => PostModel.findOne(query);
+//count post by query
+exports.countPost = (query) => PostModel.countDocuments(query);
 
 // update post
 exports.updatePost = (query, obj) =>
@@ -42,5 +44,5 @@ exports.getAllPosts = async ({ query, page, limit, responseKey = "data" }) => {
     limit,
   });
 
-  return {[responseKey]:data, pagination };
+  return { [responseKey]: data, pagination };
 };
