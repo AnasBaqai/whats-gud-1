@@ -4,6 +4,7 @@ const {
   updateTicket,
   findTicket,
   deleteTicket,
+  findManyTickets,
 } = require("../models/ticketModel");
 const { generateBarcode } = require("../utils/barcodeGenerator");
 const { generateResponse } = require("../utils");
@@ -15,6 +16,7 @@ const { findEvent } = require("../models/eventModel");
 const { TICKET_STATUS } = require("../utils/constants");
 const { ticketValidation } = require("../validation/ticketValidation");
 const { updateUser, findUser } = require("../models/userModel");
+const { getUserTicketsQuery } = require("./queries/ticketQueries");
 const stripe = require("stripe")(
   "sk_test_51OUd7mHbqQR9UTxNCpWRsgtfoDlQSI5EFOm6vKrjz6F5rWb6y96zkpigrVK4ib1rHUQJz7lNUAhfNofL2zfuy8xb0095zYWfAX"
 );
@@ -142,6 +144,22 @@ exports.verifyTicket = async (req, res, next) => {
       mainMessage: "Hooray",
       message: "your ticket has been verified",
     });
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// get all users tickets sorted on createdAt
+exports.getAllTickets = async (req, res, next) => {
+  const userId = mongoose.Types.ObjectId(req.user.id);
+  const query = getUserTicketsQuery(userId);
+  try {
+    const tickets = await findManyTickets(query);
+    return generateResponse(tickets, "Tickets retrieved successfully", res);
   } catch (error) {
     console.log(error.message);
     return next({
