@@ -14,6 +14,7 @@ const ticketApi = require('./ticketAPi')
 const categoriesApi = require('./categoriesAPi');
 const postAPI = require('./postAPi');
 const avatarAPI = require('./avatarAPi');
+const streamAPI = require('./streamApi');
 
 // all API routing files import here like above
 
@@ -38,6 +39,7 @@ class API {
         this.routeGroups.push(new categoriesApi());
         this.routeGroups.push(new postAPI());
         this.routeGroups.push(new avatarAPI());
+        this.routeGroups.push(new streamAPI());
         // all routes register here like above
     }
 
