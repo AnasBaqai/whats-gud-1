@@ -3,6 +3,7 @@ require('dotenv').config();
 const cors = require('cors');
 const API = require('./api');
 const http = require("http");
+const socketio = require("socket.io");
 const DB_CONNECT = require('./config/dbConnect');
 const cookieSession = require('cookie-session');
 const { notFound, errorHandler } = require('./middlewares/errorHandling');
@@ -100,4 +101,6 @@ DB_CONNECT().then(()=>{
     console.log(`Server running on port ${PORT}/`);
 });
 })
+const io = socketio(server).sockets
+require('./service/chatService')(io)
 
