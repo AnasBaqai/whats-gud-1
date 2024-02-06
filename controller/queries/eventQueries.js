@@ -422,10 +422,12 @@ exports.getFavEventsQuery = (currentUserId) => {
 };
 
 exports.getuserCreatedEventsQuery = (userId,currentUserId) => {
+  const currentDate = new Date();
   return [
     {
       $match: {
         creator: userId,
+        dateAndTime: { $gte: currentDate }
       },
     },
     // Populate the main category
