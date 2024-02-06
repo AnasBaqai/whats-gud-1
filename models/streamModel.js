@@ -47,6 +47,10 @@ const streamSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    coverImage: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

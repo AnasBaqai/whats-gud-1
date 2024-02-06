@@ -4,6 +4,7 @@ const {
   CreateStreamKeyCommand,
   ListStreamKeysCommand,
   GetStreamKeyCommand,
+  GetChannelCommand,
 } = require("@aws-sdk/client-ivs");
 
 const ivsClient = new IvsClient({
@@ -34,6 +35,18 @@ exports.getStreamKeyValue=async(streamKeyArn) =>{
       throw error;
   }
 }
+
+exports.getIngestEndpoint= async(channelArn)=> {
+  const command = new GetChannelCommand({ arn: channelArn });
+
+  try {
+    const response = await ivsClient.send(command);
+    return response.channel.ingestEndpoint;
+  } catch (error) {
+    console.error("Error retrieving channel details:", error);
+    throw error;
+  }
+};
 exports.createStreamKey = async (channelArn) => {
   const command = new CreateStreamKeyCommand({ channelArn });
 

@@ -23,6 +23,10 @@ const userChannelSchema = new Schema(
       type: String,
       required: true,
     },
+    ingestUrl: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

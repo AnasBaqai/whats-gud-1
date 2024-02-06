@@ -6,6 +6,7 @@ const {
   createChannel,
   getStreamKeysForChannel,
   getStreamKeyValue,
+  getIngestEndpoint,
 } = require("../utils/awsStream");
 const { streamValidationSchema } = require("../validation/streamValidation");
 const {
@@ -28,7 +29,6 @@ exports.createStream = async (req, res, next) => {
     let channel;
     const userChannel = await findUserChannel({ userId });
     if (userChannel) {
-      console.log("if working")
       channel = userChannel;
       const stream = await createStream({
         ...body,
@@ -41,15 +41,15 @@ exports.createStream = async (req, res, next) => {
         res
       );
     } else {
-      console.log("else working")
       channel = await createChannel(userId);
       const streamKeys = await getStreamKeysForChannel(channel.arn);
       const streamKey = await getStreamKeyValue(streamKeys[0].arn);
-      await createUserChannel({
+      const channelData= await createUserChannel({
         userId,
         channelUrl: channel.arn,
         streamKey,
         playBackUrl: channel.playbackUrl,
+        ingestUrl: channel.ingestEndpoint,
       });
       const stream = await createStream({
         ...body,
@@ -57,7 +57,7 @@ exports.createStream = async (req, res, next) => {
         playBackUrl: channel.playbackUrl,
       });
       return generateResponse(
-        { channel, stream },
+        { channelData, stream },
         "stream created successfully",
         res
       );
