@@ -101,9 +101,9 @@ exports.getAnyUserProfileCount = async (req, res, next) => {
       "firstName lastName image _id email"
     );
     // count of events created by the user
-    const eventCount = await countEventDocumentsByUser({ creator: userId });
+    const eventCount = await countEventDocumentsByUser({ creator: userId});
     // get postCount by user
-    const postCount = await countPost({ postedBy: userId });
+    const postCount = await countPost({ postedBy: userId, isDeleted: false});
     // get count of events attended
     const eventsAttended = await findManyTickets([
       {
