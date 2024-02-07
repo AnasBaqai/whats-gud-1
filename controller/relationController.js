@@ -3,7 +3,7 @@ const { STATUS_CODES } = require("../utils/constants");
 const { updateRelation, findRelation } = require("../models/relationModel");
 const { countEventDocumentsByUser } = require("../models/eventModel");
 const { findManyTickets } = require("../models/ticketModel");
-const { findUser } = require("../models/userModel");
+const { findUser, findUsers } = require("../models/userModel");
 const { default: mongoose } = require("mongoose");
 const { countPost } = require("../models/postModel");
 
@@ -158,7 +158,7 @@ exports.getMutualConnectionList = async (req, res, next) => {
     const mutualConnections = relation.followers.filter(follower => 
       relation.following.includes(follower)
     );
-    const mutualConnectionsList = await findUser({ _id: { $in: mutualConnections } }).select("firstName lastName image _id email");
+    const mutualConnectionsList = await findUsers({ _id: { $in: mutualConnections } }).select("firstName lastName image _id email");
 
     return generateResponse(
      mutualConnectionsList,
