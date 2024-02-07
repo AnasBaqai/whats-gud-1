@@ -635,7 +635,9 @@ exports.getAllUserEventsQuery = (currentUserId) => {
       $project: {
         _id: 1,
         eventName: 1,
-        dateAndTime: 1,
+        dateAndTime:1,
+        createdAt:1,
+        coverImage:1,
         status: {
           $ifNull: ["$status", EVENT_STATUS.APPROVED],
         },
@@ -643,66 +645,8 @@ exports.getAllUserEventsQuery = (currentUserId) => {
     },
     {
       $sort: {
-        dateAndTime: -1, // 1 for ascending order, -1 for descending order
-      },
-    },
-  ];
-};
-
-exports.getEventOrganizersQuery = (currentUserId) => {
-  return [
-    {
-      $group: {
-        _id: "$creator",
-        numEvents: { $sum: 1 }, // Count the number of events for each creator
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "_id",
-        foreignField: "_id",
-        as: "creatorInfo",
-      },
-    },
-    {
-      $unwind: "$creatorInfo", // Unwind to get each creator's information
-    },
-    {
-      $lookup: {
-        from: "relations",
-        let: { creatorId: "$_id" },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ["$user", currentUserId] },
-                  { $in: ["$$creatorId", "$following"] },
-                ],
-              },
-            },
-          },
-          { $project: { _id: 1 } },
-        ],
-        as: "isFollowingCreator",
-      },
-    },
-    {
-      $addFields: {
-        isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
-      },
-    },
-    {
-      $project: {
-        _id: "$creatorInfo._id",
-        firstName: "$creatorInfo.firstName",
-        lastName: "$creatorInfo.lastName",
-        email: "$creatorInfo.email",
-        image: "$creatorInfo.image",
-        isFollowingCreator: 1,
-        numEvents: 1,
-      },
-    },
-  ];
-};
+        createdAt:-1 // 1 for ascending order, -1 for descending order
+      }
+    }
+  ]
+}
