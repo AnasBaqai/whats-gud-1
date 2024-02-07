@@ -47,3 +47,4 @@ exports.getAllEventsController = async (req, res,next) => {
     });
   }
 };
+

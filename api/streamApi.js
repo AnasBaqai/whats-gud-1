@@ -2,7 +2,7 @@
 
 const { Router } = require('express')
 const {ROLES} = require('../utils/constants');
-const {createStream}= require('../controller/streamController');
+const {createStream,getStreamers}= require('../controller/streamController');
 const auth = require("../middlewares/Auth");
 class streamAPI {
     constructor() {
@@ -13,6 +13,7 @@ class streamAPI {
     setupRoutes() {
         let router = this.router;
         router.post('/',auth([ROLES.USER, ROLES.ADMIN]),createStream);
+        router.get('/streamers',auth([ROLES.USER, ROLES.ADMIN]),getStreamers);
       }    
 
     getRouter() {

@@ -1,5 +1,10 @@
 const { EVENT_STATUS } = require("../../utils/constants");
-exports.getAllEventsQuery = (ID = null,eventId=null, subCategoryIds = [], currentUserId) => {
+exports.getAllEventsQuery = (
+  ID = null,
+  eventId = null,
+  subCategoryIds = [],
+  currentUserId
+) => {
   let matchCondition;
   const currentDate = new Date();
 
@@ -21,8 +26,8 @@ exports.getAllEventsQuery = (ID = null,eventId=null, subCategoryIds = [], curren
     matchCondition = {
       $and: [dateCondition, { "category.sub": { $all: subCategoryIds } }],
     };
-  }else if (eventId){
-    matchCondition= {_id:eventId}
+  } else if (eventId) {
+    matchCondition = { _id: eventId };
   } else {
     // If neither mainCategoryId nor subCategoryIds are provided,
     // match only based on the date
@@ -150,32 +155,32 @@ exports.getAllEventsQuery = (ID = null,eventId=null, subCategoryIds = [], curren
       },
     },
 
-  // Check if currentUserId follows the creator
-  {
-    $lookup: {
-      from: "relations", // Replace with your Relation collection name
-      let: { creatorId: "$creator.id" },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ["$user", currentUserId] },
-                { $in: ["$$creatorId", "$following"] },
-              ],
+    // Check if currentUserId follows the creator
+    {
+      $lookup: {
+        from: "relations", // Replace with your Relation collection name
+        let: { creatorId: "$creator.id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$user", currentUserId] },
+                  { $in: ["$$creatorId", "$following"] },
+                ],
+              },
             },
           },
-        },
-        { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
-      ],
-      as: "isFollowingCreator",
+          { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
+        ],
+        as: "isFollowingCreator",
+      },
     },
-  },
-  {
-    $addFields: {
-      isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+    {
+      $addFields: {
+        isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+      },
     },
-  },
     // Project the final structure
     {
       $project: {
@@ -218,7 +223,7 @@ exports.getAllEventsQuery = (ID = null,eventId=null, subCategoryIds = [], curren
         },
         ticketsSold: 1,
         createdAt: 1,
-        status:{ $ifNull: ["$status", EVENT_STATUS.APPROVED] },
+        status: { $ifNull: ["$status", EVENT_STATUS.APPROVED] },
       },
     },
   ];
@@ -346,32 +351,32 @@ exports.getFavEventsQuery = (currentUserId) => {
         },
       },
     },
-     // Check if currentUserId follows the creator
-  {
-    $lookup: {
-      from: "relations", // Replace with your Relation collection name
-      let: { creatorId: "$creator.id" },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $and: [
-                { $eq: ["$user", currentUserId] },
-                { $in: ["$$creatorId", "$following"] },
-              ],
+    // Check if currentUserId follows the creator
+    {
+      $lookup: {
+        from: "relations", // Replace with your Relation collection name
+        let: { creatorId: "$creator.id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$user", currentUserId] },
+                  { $in: ["$$creatorId", "$following"] },
+                ],
+              },
             },
           },
-        },
-        { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
-      ],
-      as: "isFollowingCreator",
+          { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
+        ],
+        as: "isFollowingCreator",
+      },
     },
-  },
-  {
-    $addFields: {
-      isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+    {
+      $addFields: {
+        isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+      },
     },
-  },
 
     // Project the final structure
     {
@@ -415,19 +420,19 @@ exports.getFavEventsQuery = (currentUserId) => {
         },
         ticketsSold: 1,
         createdAt: 1,
-        status:{ $ifNull: ["$status", EVENT_STATUS.APPROVED] },
+        status: { $ifNull: ["$status", EVENT_STATUS.APPROVED] },
       },
     },
   ];
 };
 
-exports.getuserCreatedEventsQuery = (userId,currentUserId) => {
+exports.getuserCreatedEventsQuery = (userId, currentUserId) => {
   const currentDate = new Date();
   return [
     {
       $match: {
         creator: userId,
-        dateAndTime: { $gte: currentDate }
+        dateAndTime: { $gte: currentDate },
       },
     },
     // Populate the main category
@@ -545,32 +550,32 @@ exports.getuserCreatedEventsQuery = (userId,currentUserId) => {
         },
       },
     },
- // Check if currentUserId follows the creator
- {
-  $lookup: {
-    from: "relations", // Replace with your Relation collection name
-    let: { creatorId: "$creator.id" },
-    pipeline: [
-      {
-        $match: {
-          $expr: {
-            $and: [
-              { $eq: ["$user", currentUserId] },
-              { $in: ["$$creatorId", "$following"] },
-            ],
+    // Check if currentUserId follows the creator
+    {
+      $lookup: {
+        from: "relations", // Replace with your Relation collection name
+        let: { creatorId: "$creator.id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$user", currentUserId] },
+                  { $in: ["$$creatorId", "$following"] },
+                ],
+              },
+            },
           },
-        },
+          { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
+        ],
+        as: "isFollowingCreator",
       },
-      { $project: { _id: 1 } }, // Project only the _id as we just need to check existence
-    ],
-    as: "isFollowingCreator",
-  },
-},
-{
-  $addFields: {
-    isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
-  },
-},
+    },
+    {
+      $addFields: {
+        isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+      },
+    },
     // Project the final structure
     {
       $project: {
@@ -613,15 +618,13 @@ exports.getuserCreatedEventsQuery = (userId,currentUserId) => {
         },
         ticketsSold: 1,
         createdAt: 1,
-        status:{ $ifNull: ["$status", EVENT_STATUS.APPROVED] },
+        status: { $ifNull: ["$status", EVENT_STATUS.APPROVED] },
       },
     },
   ];
 };
 
-
-exports.getAllUserEventsQuery= (currentUserId)=>{
-
+exports.getAllUserEventsQuery = (currentUserId) => {
   return [
     {
       $match: {
@@ -632,17 +635,74 @@ exports.getAllUserEventsQuery= (currentUserId)=>{
       $project: {
         _id: 1,
         eventName: 1,
-        dateAndTime:1,
+        dateAndTime: 1,
         status: {
           $ifNull: ["$status", EVENT_STATUS.APPROVED],
-        }
+        },
       },
-      
     },
     {
       $sort: {
-        dateAndTime: -1 // 1 for ascending order, -1 for descending order
-      }
-    }
-  ]
-}
+        dateAndTime: -1, // 1 for ascending order, -1 for descending order
+      },
+    },
+  ];
+};
+
+exports.getEventOrganizersQuery = (currentUserId) => {
+  return [
+    {
+      $group: {
+        _id: "$creator",
+        numEvents: { $sum: 1 }, // Count the number of events for each creator
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "creatorInfo",
+      },
+    },
+    {
+      $unwind: "$creatorInfo", // Unwind to get each creator's information
+    },
+    {
+      $lookup: {
+        from: "relations",
+        let: { creatorId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$user", currentUserId] },
+                  { $in: ["$$creatorId", "$following"] },
+                ],
+              },
+            },
+          },
+          { $project: { _id: 1 } },
+        ],
+        as: "isFollowingCreator",
+      },
+    },
+    {
+      $addFields: {
+        isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+      },
+    },
+    {
+      $project: {
+        _id: "$creatorInfo._id",
+        firstName: "$creatorInfo.firstName",
+        lastName: "$creatorInfo.lastName",
+        email: "$creatorInfo.email",
+        image: "$creatorInfo.image",
+        isFollowingCreator: 1,
+        numEvents: 1,
+      },
+    },
+  ];
+};

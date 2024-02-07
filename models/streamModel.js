@@ -64,3 +64,14 @@ const StreamModel = model("Stream", streamSchema);
 exports.createStream = (obj) => StreamModel.create(obj);
 
 exports.findStream = (query) => StreamModel.findOne(query);
+
+exports.getAllStreams = async ({ query, page, limit, responseKey = "data" }) => {
+  const { data, pagination } = await getMongooseAggregatePaginatedData({
+    model: StreamModel,
+    query,
+    page,
+    limit,
+  });
+
+  return { [responseKey]: data, pagination };
+};

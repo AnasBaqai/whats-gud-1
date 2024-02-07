@@ -19,6 +19,7 @@ const {
   getFavEventsQuery,
   getuserCreatedEventsQuery,
   getAllUserEventsQuery,
+  getEventOrganizersQuery,
 } = require("./queries/eventQueries");
 const { findUser } = require("../models/userModel");
 const { locationValidation } = require("../validation/userValidation");
@@ -288,6 +289,31 @@ exports.setEventStatusController = async (req, res, next) => {
       "Event status updated successfully",
       res
     );
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
+
+// get ids of organizers which are event creator and add variable isFollowing to check if the user is following the organizer or not
+exports.getOrganizers = async (req, res, next) => {
+  try {
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    page = parseInt(req.query.page) || 1;
+    limit = parseInt(req.query.limit) || 10;
+    const query = getEventOrganizersQuery(userId);
+    const organizers = await getAllEvents({
+      query,
+      page,
+      limit,
+      responseKey: "organizers",
+    
+    });
+    
+    return generateResponse(organizers, "Organizers fetched successfully", res);
   } catch (error) {
     console.log(error.message);
     return next({
