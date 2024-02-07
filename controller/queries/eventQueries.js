@@ -633,6 +633,8 @@ exports.getAllUserEventsQuery= (currentUserId)=>{
         _id: 1,
         eventName: 1,
         dateAndTime:1,
+        createdAt:1,
+        coverImage:1,
         status: {
           $ifNull: ["$status", EVENT_STATUS.APPROVED],
         }
@@ -641,7 +643,7 @@ exports.getAllUserEventsQuery= (currentUserId)=>{
     },
     {
       $sort: {
-        dateAndTime: -1 // 1 for ascending order, -1 for descending order
+        createdAt:-1 // 1 for ascending order, -1 for descending order
       }
     }
   ]
