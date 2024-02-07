@@ -322,3 +322,27 @@ exports.getOrganizers = async (req, res, next) => {
     });
   }
 };
+
+exports.getOrganizers = async (req, res, next) => {
+  try {
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    page = parseInt(req.query.page) || 1;
+    limit = parseInt(req.query.limit) || 10;
+    const query = getEventOrganizersQuery(userId);
+    const organizers = await getAllEvents({
+      query,
+      page,
+      limit,
+      responseKey: "organizers",
+    
+    });
+    
+    return generateResponse(organizers, "Organizers fetched successfully", res);
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+};
