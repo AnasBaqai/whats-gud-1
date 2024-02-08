@@ -12,6 +12,7 @@ const {
   setEventStatusController,
   getUserProfileEvents,
   getOrganizers,
+  getCelebrity
 } = require("../controller/eventController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
@@ -70,6 +71,11 @@ class eventAPI {
       "/organizers",
       auth([ROLES.USER, ROLES.ADMIN]),
       getOrganizers
+    );
+    router.get(
+      "/celebrity",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      getCelebrity
     );
   }
 

@@ -20,6 +20,7 @@ const {
   getuserCreatedEventsQuery,
   getAllUserEventsQuery,
   getEventOrganizersQuery,
+  getCelebQuery,
 } = require("./queries/eventQueries");
 const { findUser } = require("../models/userModel");
 const { locationValidation } = require("../validation/userValidation");
@@ -323,21 +324,21 @@ exports.getOrganizers = async (req, res, next) => {
   }
 };
 
-exports.getOrganizers = async (req, res, next) => {
+exports.getCelebrity = async (req, res, next) => {
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
     page = parseInt(req.query.page) || 1;
     limit = parseInt(req.query.limit) || 10;
-    const query = getEventOrganizersQuery(userId);
-    const organizers = await getAllEvents({
+    const query = getCelebQuery(userId);
+    const celebs = await getAllEvents({
       query,
       page,
       limit,
-      responseKey: "organizers",
+      responseKey: "celebs",
     
     });
     
-    return generateResponse(organizers, "Organizers fetched successfully", res);
+    return generateResponse(celebs, "Organizers fetched successfully", res);
   } catch (error) {
     console.log(error.message);
     return next({

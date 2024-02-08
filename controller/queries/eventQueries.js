@@ -635,9 +635,9 @@ exports.getAllUserEventsQuery = (currentUserId) => {
       $project: {
         _id: 1,
         eventName: 1,
-        dateAndTime:1,
-        createdAt:1,
-        coverImage:1,
+        dateAndTime: 1,
+        createdAt: 1,
+        coverImage: 1,
         status: {
           $ifNull: ["$status", EVENT_STATUS.APPROVED],
         },
@@ -645,8 +645,130 @@ exports.getAllUserEventsQuery = (currentUserId) => {
     },
     {
       $sort: {
-        createdAt:-1 // 1 for ascending order, -1 for descending order
-      }
-    }
-  ]
-}
+        createdAt: -1, // 1 for ascending order, -1 for descending order
+      },
+    },
+  ];
+};
+
+exports.getEventOrganizersQuery = (currentUserId) => {
+  return [
+    {
+      $group: {
+        _id: "$creator",
+        numEvents: { $sum: 1 }, // Count the number of events for each creator
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "creatorInfo",
+      },
+    },
+    {
+      $unwind: "$creatorInfo", // Unwind to get each creator's information
+    },
+    {
+      $lookup: {
+        from: "relations",
+        let: { creatorId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$user", currentUserId] },
+                  { $in: ["$$creatorId", "$following"] },
+                ],
+              },
+            },
+          },
+          { $project: { _id: 1 } },
+        ],
+        as: "isFollowingCreator",
+      },
+    },
+    {
+      $addFields: {
+        isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+      },
+    },
+    {
+      $project: {
+        _id: "$creatorInfo._id",
+        firstName: "$creatorInfo.firstName",
+        lastName: "$creatorInfo.lastName",
+        email: "$creatorInfo.email",
+        image: "$creatorInfo.image",
+        isFollowingCreator: 1,
+        numEvents: 1,
+      },
+    },
+  ];
+};
+
+exports.getCelebQuery = (currentUserId) => {
+  return [
+    {
+      $match: {
+        "artistDJ.id": { $exists: true }, // Filter out documents where artistDJ.id does not exist
+      },
+    },
+    {
+      $group: {
+        _id: "$artistDJ.id", // Group by artistDJ.id
+        eventsPerformed: { $sum: 1 }, // Count the occurrences of each artistDJ.id
+        // You can add more fields as needed
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "artistInfo",
+      },
+    },
+    {
+      $unwind: "$artistInfo", // Unwind to get each creator's information
+    },
+    {
+      $lookup: {
+        from: "relations",
+        let: { artistInfoId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$user", currentUserId] },
+                  { $in: ["$$artistInfoId", "$following"] },
+                ],
+              },
+            },
+          },
+          { $project: { _id: 1 } },
+        ],
+        as: "isFollowingCreator",
+      },
+    },
+    {
+      $addFields: {
+        isFollowingCreator: { $gt: [{ $size: "$isFollowingCreator" }, 0] },
+      },
+    },
+    {
+      $project: {
+        _id: "$artistInfo._id",
+        firstName: "$artistInfo.firstName",
+        lastName: "$artistInfo.lastName",
+        email: "$artistInfo.email",
+        image: "$artistInfo.image",
+        isFollowingCreator: 1,
+        eventsPerformed: 1,
+      },
+    },
+  ];
+};
