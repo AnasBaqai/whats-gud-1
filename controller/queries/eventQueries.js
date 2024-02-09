@@ -697,7 +697,8 @@ exports.getEventOrganizersQuery = (currentUserId) => {
     },
     {
       $project: {
-        _id: "$creatorInfo._id",
+        _id:0,
+        id: "$creatorInfo._id",
         firstName: "$creatorInfo.firstName",
         lastName: "$creatorInfo.lastName",
         email: "$creatorInfo.email",
@@ -761,7 +762,8 @@ exports.getCelebQuery = (currentUserId) => {
     },
     {
       $project: {
-        _id: "$artistInfo._id",
+        _id:0,
+        id: "$artistInfo._id",
         firstName: "$artistInfo.firstName",
         lastName: "$artistInfo.lastName",
         email: "$artistInfo.email",
