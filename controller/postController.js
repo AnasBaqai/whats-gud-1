@@ -247,8 +247,6 @@ exports.getAllPostsController = async (req, res, next) => {
     const { following, followers } = await findRelation({
       user: currentUserId,
     });
-    console.log("followers", followers);
-    console.log("following", following);
     const query = getPostsQuery(currentUserId, following, followers);
     const result = await getAllPosts({ query, page, limit });
     return generateResponse(
@@ -409,7 +407,7 @@ exports.retrieveDeletedPostsController = async (req, res, next) => {
     });
     return generateResponse(result, "deleted Posts fetched successfully", res);
   } catch (error) {
-    console.log("here", error.message);
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
@@ -503,7 +501,7 @@ exports.getPostsOfUserTaggedInController = async (req, res, next) => {
     });
     return generateResponse(result, "Posts fetched successfully", res);
   } catch (error) {
-    console.log("here", error.message);
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",

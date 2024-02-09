@@ -219,7 +219,6 @@ exports.onBoardingComplete = async (req, res) => {
           stripeAccountId: stripeUserId,
         }
       );
-      console.log(updatedUser);
 
      res.render("index", {
         mainMessage: "Onboarding Process Completed",

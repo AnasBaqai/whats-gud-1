@@ -124,7 +124,6 @@ exports.updateLocation = async (req, res, next) => {
       });
     const userId = req.user.id;
     const address= await getReverseGeocodingData(latitude, longitude);
-    console.log(address);
     const updatedUser = await updateUser(
       { _id: mongoose.Types.ObjectId(userId) },
       {
@@ -166,11 +165,11 @@ exports.getUserProfile = async (req, res, next) => {
 exports.createAccessToken = async (req, res, next) => {
   try {
     const user = req.user;
-    console.log(user);
     const token = generateToken(user);
     res.setHeader("authorization", token);
     return generateResponse(token, "Access token created", res);
   } catch (err) {
+    console.log(err.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
@@ -237,7 +236,7 @@ exports.updateProfile = async (req, res, next) => {
     const updatedUser = await updateUser({ _id: userId }, body).exec();
     return generateResponse(updatedUser, "Profile updated", res);
   } catch (err) {
-    console.log(err);
+    console.log(err.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",

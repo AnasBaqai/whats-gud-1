@@ -772,3 +772,22 @@ exports.getCelebQuery = (currentUserId) => {
     },
   ];
 };
+
+// all user related aggregate / long queries here
+
+exports.searchEventsQuery = (searchTerm= null) => {
+  return [
+    {
+      $match: { eventName: { $regex: searchTerm, $options: "i" } }, // Case-insensitive regex match for lastName},
+    },
+    {
+      $project: {
+        _id: 1,
+        eventName: 1,
+        dateAndTime: 1,
+        coverImage: 1,
+        type: { $literal: "event" }, // Add a field 'type' with value 'user' to each document
+      },
+    },
+  ];
+};

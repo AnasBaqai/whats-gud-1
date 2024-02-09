@@ -124,7 +124,6 @@ exports.getAnyUserProfileCount = async (req, res, next) => {
     ]);
     // get relation of loggedin user
     const loggedInUserRelation = await findRelation({ user: req.user.id });
-    console.log("loggedin user relation", loggedInUserRelation);
     const isFollowing = loggedInUserRelation.following.includes(userId);
     const isFollower = loggedInUserRelation.followers.includes(userId);
     return generateResponse(

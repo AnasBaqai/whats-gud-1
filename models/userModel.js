@@ -86,6 +86,8 @@ exports.findUsers = (query) => UserModel.find(query);
 exports.updateUser = (query, obj) =>
   UserModel.findOneAndUpdate(query, obj, { new: true });
 
+
+exports.findManyUsers = (query) => UserModel.aggregate(query);
 // get all users
 exports.getAllUsers = async ({ query, page, limit, responseKey = "data" }) => {
   const { data, pagination } = await getMongooseAggregatePaginatedData({

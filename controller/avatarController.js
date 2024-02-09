@@ -17,7 +17,6 @@ exports.createAvatarController = async (req, res, next) => {
     if (req.file) {
       url = await s3Uploadv3([req.file]);
     }
-    console.log(url);
     const newAvatar = {
       url: url[0],
       ...body,

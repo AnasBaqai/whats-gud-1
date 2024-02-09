@@ -22,7 +22,6 @@ exports.createStream = async (req, res, next) => {
     const userId = req.user.id;
     const { error } = streamValidationSchema.validate({ ...body, userId });
     if (error) {
-      console.log("error coming from here");
       return next({
         status: STATUS_CODES.BAD_REQUEST,
         message: error.details[0].message,
@@ -65,7 +64,8 @@ exports.createStream = async (req, res, next) => {
       );
     }
   } catch (error) {
-    return next({ status: STATUS_CODES.INTERNAL_SERVER_ERROR, message: error });
+    console.log(error.message);
+    return next({ status: STATUS_CODES.INTERNAL_SERVER_ERROR, message: "INTERNAL_SERVER_ERROR" });
   }
 };
 
@@ -85,6 +85,7 @@ exports.getStreamers = async (req, res, next) => {
 
     return generateResponse(streamers, "streamers fetched successfully", res);
   } catch (error) {
-    return next({ status: STATUS_CODES.INTERNAL_SERVER_ERROR, message: error });
+    console.log(error.message);
+    return next({ status: STATUS_CODES.INTERNAL_SERVER_ERROR, message: "INTERNAL_SERVER_ERROR" });
   }
 };

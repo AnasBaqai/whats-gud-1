@@ -57,7 +57,7 @@ exports.googleCallback = async (req, res, next) => {
       res
     );
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
@@ -106,7 +106,7 @@ exports.facebookCallback = async (req, res, next) => {
       res
     );
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
     next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
@@ -164,7 +164,7 @@ exports.loginUser = async (req, res, next) => {
     );
   } catch (error) {
     // Handle the error
-    console.log(error);
+    console.log(error.message);
     return next({
       statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
       message: "internal server error",
