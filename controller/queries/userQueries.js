@@ -20,7 +20,7 @@ exports.searchUsersQuery = (searchTerm = null) => {
     },
     {
       $project: {
-        _id:0,
+        _id: 0, // Exclude _id from the projected fields
         id: "$_id",
         firstName: 1,
         lastName: 1,
@@ -32,10 +32,12 @@ exports.searchUsersQuery = (searchTerm = null) => {
             $ifNull: [{ $arrayElemAt: ["$userRelations.followers", 0] }, []],
           },
         },
+        // Add an additional sorting key based on the priority of matches in firstName
+        firstNameMatch: { $cond: [{ $eq: [{ $indexOfCP: ["$firstName", searchTerm] }, 0] }, 0, 1] }
       },
     },
     {
-      $sort: { followersCount: -1 }, // Sort by followersCount in descending order
+      $sort: { firstNameMatch: 1, firstName: 1 } // Sort by firstNameMatch (priority) and then firstName
     },
-  ];
+  ]
 };
