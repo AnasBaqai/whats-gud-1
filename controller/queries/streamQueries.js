@@ -39,7 +39,8 @@ exports.getStreamersQuery = (currentUserId) => {
     },
     {
       $project: {
-        _id: "$userInfo._id",
+        _id:0,
+        id: "$userInfo._id",
         firstName: "$userInfo.firstName",
         lastName: "$userInfo.lastName",
         email: "$userInfo.email",
