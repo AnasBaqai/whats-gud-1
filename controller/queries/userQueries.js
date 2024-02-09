@@ -1,13 +1,21 @@
 // all user related aggregate / long queries here
 
-exports.searchUsersQuery = (searchTerm=null) => {
+exports.searchUsersQuery = (searchTerm = null) => {
   return [
     {
       $match: {
         $or: [
-          { firstName: { $regex: searchTerm, $options: "i" } }, // Case-insensitive regex match for firstName
-          { lastName: { $regex: searchTerm, $options: "i" } }, // Case-insensitive regex match for lastName
+          { firstName: { $regex: searchTerm, $options: "i" } },
+          { lastName: { $regex: searchTerm, $options: "i" } },
         ],
+      },
+    },
+    {
+      $lookup: {
+        from: "relations", // Replace with your actual relations collection name
+        localField: "_id",
+        foreignField: "user",
+        as: "userRelations",
       },
     },
     {
@@ -15,10 +23,18 @@ exports.searchUsersQuery = (searchTerm=null) => {
         _id: 1,
         firstName: 1,
         lastName: 1,
-        image:1,
-        email:1,
-        type: { $literal: "user" }, // Add a field 'type' with value 'user' to each document
+        image: 1,
+        email: 1,
+        type: { $literal: "user" },
+        followersCount: {
+          $size: {
+            $ifNull: [{ $arrayElemAt: ["$userRelations.followers", 0] }, []],
+          },
+        },
       },
+    },
+    {
+      $sort: { followersCount: -1 }, // Sort by followersCount in descending order
     },
   ];
 };

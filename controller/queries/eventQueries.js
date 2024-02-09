@@ -774,8 +774,7 @@ exports.getCelebQuery = (currentUserId) => {
 };
 
 // all user related aggregate / long queries here
-
-exports.searchEventsQuery = (searchTerm= null) => {
+exports.searchEventsQuery = (searchTerm = null) => {
   return [
     {
       $match: { eventName: { $regex: searchTerm, $options: "i" } }, // Case-insensitive regex match for lastName},
@@ -789,5 +788,6 @@ exports.searchEventsQuery = (searchTerm= null) => {
         type: { $literal: "event" }, // Add a field 'type' with value 'user' to each document
       },
     },
+    { $sort: { dateAndTime: 1 } }, // Sort by dateAndTime in ascending order
   ];
 };
