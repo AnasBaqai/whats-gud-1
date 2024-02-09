@@ -20,7 +20,8 @@ exports.searchUsersQuery = (searchTerm = null) => {
     },
     {
       $project: {
-        _id: 1,
+        _id:0,
+        id: "$_id",
         firstName: 1,
         lastName: 1,
         image: 1,

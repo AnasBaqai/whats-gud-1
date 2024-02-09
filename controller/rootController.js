@@ -7,6 +7,7 @@ const { findManyUsers } = require("../models/userModel");
 const { searchUsersQuery } = require("./queries/userQueries");
 const { searchEventsQuery } = require("./queries/eventQueries");
 const { findManyEvents } = require("../models/eventModel");
+const mongoose = require("mongoose");
 exports.DefaultHandler = (req, res, next) => {
   generateResponse(null, `Welcome to the ${process.env.APP_NAME} - API`, res);
 };
@@ -44,10 +45,14 @@ exports.chatbot = async (req, res, next) => {
 // search user and events by name from the database
 exports.search = async (req, res, next) => {
   try {
+    if(req.query.search === ''){
+      return generateResponse({users:[],events:[]}, "Response fetched successfully", res);
+    }
+    const userId= mongoose.Types.ObjectId(req.user.id);
     const search = req.query.search;
     const usersQuery = searchUsersQuery(search);
     const users = await findManyUsers(usersQuery);
-    const eventsQuery = searchEventsQuery(search);
+    const eventsQuery = searchEventsQuery(search,userId);
     const events = await findManyEvents(eventsQuery);
     const response = {
       users,
