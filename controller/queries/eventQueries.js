@@ -780,7 +780,7 @@ exports.searchEventsQuery = (searchTerm = null,currentUserId) => {
   return [
     // Match events with the specified main category ID
     {
-      $match: { eventName: { $regex: searchTerm, $options: "i" } },
+      $match: { eventName: { $regex: searchTerm, $options: "i" }, dateAndTime: { $gte: new Date() } },
     },
     // Populate the main category
     {
