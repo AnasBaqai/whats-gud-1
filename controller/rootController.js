@@ -45,6 +45,7 @@ exports.chatbot = async (req, res, next) => {
 // search user and events by name from the database
 exports.search = async (req, res, next) => {
   try {
+   
     if(req.query.search === ''){
       return generateResponse({users:[],events:[]}, "Response fetched successfully", res);
     }

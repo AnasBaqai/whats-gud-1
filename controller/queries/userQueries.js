@@ -1,13 +1,19 @@
 // all user related aggregate / long queries here
 
 exports.searchUsersQuery = (searchTerm = null) => {
+  let searchTerms = searchTerm.split(" ");
+
+  let andConditions = searchTerms.map(term => ({
+    $or: [
+      { firstName: { $regex: `\\b${term}`, $options: "i" } },
+      { lastName: { $regex: `\\b${term}`, $options: "i" } }
+    ]
+  }));
+
   return [
     {
-      $match: {
-        $or: [
-          { firstName: { $regex: searchTerm, $options: "i" } },
-          { lastName: { $regex: searchTerm, $options: "i" } },
-        ],
+      $match:  {
+        $and: andConditions,
       },
     },
     {
@@ -33,11 +39,17 @@ exports.searchUsersQuery = (searchTerm = null) => {
           },
         },
         // Add an additional sorting key based on the priority of matches in firstName
-        firstNameMatch: { $cond: [{ $eq: [{ $indexOfCP: ["$firstName", searchTerm] }, 0] }, 0, 1] }
+        firstNameMatch: {
+          $cond: [
+            { $eq: [{ $indexOfCP: ["$firstName", searchTerm] }, 0] },
+            0,
+            1,
+          ],
+        },
       },
     },
     {
-      $sort: { firstNameMatch: 1, firstName: 1 } // Sort by firstNameMatch (priority) and then firstName
+      $sort: { firstNameMatch: 1, firstName: 1 }, // Sort by firstNameMatch (priority) and then firstName
     },
-  ]
+  ];
 };
