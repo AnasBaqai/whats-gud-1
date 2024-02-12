@@ -1,6 +1,10 @@
 "use strict";
 const { STATUS_CODES } = require("../utils/constants");
-const { parseBody, generateResponse, getReverseGeocodingData } = require("../utils");
+const {
+  parseBody,
+  generateResponse,
+  getReverseGeocodingData,
+} = require("../utils");
 const { updateUser, findUser, findUsers } = require("../models/userModel");
 const {
   updateProfileValidation,
@@ -10,6 +14,11 @@ const {
 const { findManyEventsTypeByIds } = require("../models/eventTypeModel");
 const mongoose = require("mongoose");
 const { s3Uploadv3, deleteImage } = require("../utils/s3Upload");
+const {
+  findRelation,
+  createRelation,
+  updateRelation,
+} = require("../models/relationModel");
 // Function to update user profile
 exports.createProfile = async (req, res, next) => {
   const body = parseBody(req.body);
@@ -68,6 +77,24 @@ exports.createProfile = async (req, res, next) => {
     };
 
     const updatedUser = await updateUser({ _id: userId }, updateData).exec();
+    const userRelations = await findRelation({ user: userId });
+    if (userRelations.length === 0) {
+      await createRelation({ user: userId });
+    }
+    // push streamers and djs which are arrays in to user relations into following array
+
+    if (prefferedStreamers.length > 0) {
+      await updateRelation(
+        { user: userId },
+        { $push: { following: { $each: prefferedStreamers } } }
+      );
+    }
+    if (preferredDJ.length > 0) {
+      await updateRelation(
+        { user: userId },
+        { $push: { following: { $each: preferredDJ } } }
+      );
+    }
     return generateResponse(updatedUser, "Profile created", res);
   } catch (error) {
     console.error(error); // Consider more selective logging in production
@@ -123,12 +150,12 @@ exports.updateLocation = async (req, res, next) => {
         message: error.message,
       });
     const userId = req.user.id;
-    const address= await getReverseGeocodingData(latitude, longitude);
+    const address = await getReverseGeocodingData(latitude, longitude);
     const updatedUser = await updateUser(
       { _id: mongoose.Types.ObjectId(userId) },
       {
         location,
-        address
+        address,
       }
     );
     return generateResponse(updatedUser, "Location updated", res);
@@ -207,7 +234,7 @@ exports.setUserAvatar = async (req, res, next) => {
     const updatedUser = await updateUser(
       { _id: mongoose.Types.ObjectId(userId) },
       {
-        image:avatar,
+        image: avatar,
       }
     );
     return generateResponse(updatedUser, "User avatar updated", res);
@@ -243,5 +270,3 @@ exports.updateProfile = async (req, res, next) => {
     });
   }
 };
-
-

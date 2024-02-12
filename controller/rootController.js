@@ -48,6 +48,11 @@ exports.search = async (req, res, next) => {
     if(req.query.search === ''){
       return generateResponse({users:[],events:[]}, "Response fetched successfully", res);
     }
+    if(req.query.type==='user'){
+      const usersQuery = searchUsersQuery(req.query.search);
+      const users = await findManyUsers(usersQuery);
+      return generateResponse({users}, "Response fetched successfully", res);
+    }
     const userId= mongoose.Types.ObjectId(req.user.id);
     const search = req.query.search;
     const usersQuery = searchUsersQuery(search);

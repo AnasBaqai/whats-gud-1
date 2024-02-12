@@ -1,9 +1,19 @@
-const {createCategories,findCategory,updateCategory}= require('../models/categoriesModel');
-const { findEvent } = require('../models/eventModel');
-const { findEventType, findAllEventTypeByQuery } = require('../models/eventTypeModel');
+const { default: mongoose } = require("mongoose");
+const {
+  createCategories,
+  findCategory,
+  updateCategory,
+} = require("../models/categoriesModel");
+const { findEvent, getAllEvents } = require("../models/eventModel");
+const {
+  findEventType,
+  findAllEventTypeByQuery,
+} = require("../models/eventTypeModel");
 const { parseBody, generateResponse } = require("../utils");
 const { STATUS_CODES } = require("../utils/constants");
-
+const { getStreamersQuery } = require("./queries/streamQueries");
+const { getAllStreams } = require("../models/streamModel");
+const { getCelebQuery } = require("./queries/eventQueries");
 
 exports.createCategoriesController = async (req, res, next) => {
   try {
@@ -17,7 +27,7 @@ exports.createCategoriesController = async (req, res, next) => {
       message: "internal server error",
     });
   }
-}
+};
 
 //function to push subcategory to category
 
@@ -39,7 +49,11 @@ exports.pushSubCategory = async (req, res, next) => {
       { _id: id },
       { $push: { subCategory } }
     );
-    return generateResponse(updatedCategory, "Subcategory added successfully", res);
+    return generateResponse(
+      updatedCategory,
+      "Subcategory added successfully",
+      res
+    );
   } catch (error) {
     console.log(error.message);
     return next({
@@ -47,122 +61,7 @@ exports.pushSubCategory = async (req, res, next) => {
       message: "internal server error",
     });
   }
-}
-const sampleData1 =[
-  {
-    "_id": "1",
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john.doe@example.com"
-  },
-  {
-    "_id": "2",
-    "firstName": "Jane",
-    "lastName": "Smith",
-    "email": "jane.smith@example.com"
-  },
-  {
-    "_id": "3",
-    "firstName": "Mike",
-    "lastName": "Johnson",
-    "email": "mike.johnson@example.com"
-  },
-  {
-    "_id": "4",
-    "firstName": "Sara",
-    "lastName": "Williams",
-    "email": "sara.williams@example.com"
-  },
-  {
-    "_id": "5",
-    "firstName": "Alex",
-    "lastName": "Brown",
-    "email": "alex.brown@example.com"
-  },
-  {
-    "_id": "6",
-    "firstName": "Chris",
-    "lastName": "Miller",
-    "email": "chris.miller@example.com"
-  },
-  {
-    "_id": "7",
-    "firstName": "Emily",
-    "lastName": "Davis",
-    "email": "emily.davis@example.com"
-  },
-  {
-    "_id": "8",
-    "firstName": "Daniel",
-    "lastName": "Clark",
-    "email": "daniel.clark@example.com"
-  },
-  {
-    "_id": "9",
-    "firstName": "Megan",
-    "lastName": "Moore",
-    "email": "megan.moore@example.com"
-  }
-]
-
-const sampleData2 =[
-  {
-    "_id": "10",
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john.doe@example.com"
-  },
-  {
-    "_id": "11",
-    "firstName": "Jane",
-    "lastName": "Smith",
-    "email": "jane.smith@example.com"
-  },
-  {
-    "_id": "12",
-    "firstName": "Mike",
-    "lastName": "Johnson",
-    "email": "mike.johnson@example.com"
-  },
-  {
-    "_id": "13",
-    "firstName": "Sara",
-    "lastName": "Williams",
-    "email": "sara.williams@example.com"
-  },
-  {
-    "_id": "14",
-    "firstName": "Alex",
-    "lastName": "Brown",
-    "email": "alex.brown@example.com"
-  },
-  {
-    "_id": "15",
-    "firstName": "Chris",
-    "lastName": "Miller",
-    "email": "chris.miller@example.com"
-  },
-  {
-    "_id": "16",
-    "firstName": "Emily",
-    "lastName": "Davis",
-    "email": "emily.davis@example.com"
-  },
-  {
-    "_id": "17",
-    "firstName": "Daniel",
-    "lastName": "Clark",
-    "email": "daniel.clark@example.com"
-  },
-  {
-    "_id": "18",
-    "firstName": "Megan",
-    "lastName": "Moore",
-    "email": "megan.moore@example.com"
-  }
-]
-
-
+};
 
 // function to get all categories
 exports.getAllCategories = async (req, res, next) => {
@@ -175,12 +74,29 @@ exports.getAllCategories = async (req, res, next) => {
     const transformedCategories = categories.reduce((acc, category) => {
       acc[category.name] = category.subCategory;
       return acc;
-    }, {});    
+    }, {});
     // Combine transformed categories and eventTypes
+    const userId = mongoose.Types.ObjectId(req.user.id);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const query = getStreamersQuery(userId);
+    const streamers = await getAllStreams({
+      query,
+      page,
+      limit,
+      responseKey: "Streamers",
+    });
+    const queryCeleb = getCelebQuery(userId);
+    const celebs = await getAllEvents({
+      query: queryCeleb,
+      page,
+      limit,
+      responseKey: "celebs",
+    });
     const result = {
       Events: eventTypes,
-      Streamers: sampleData1,
-      DJ: sampleData2,
+      Streamers: streamers.Streamers,
+      DJ: celebs.celebs,
       ...transformedCategories,
     };
 
