@@ -21,6 +21,8 @@ exports.getUserTicketsQuery = (userId)=>{
         price: 1,
         status: 1,
         barcode: 1,
+        quantity: 1,
+        eventId: 1,
         eventName: "$eventDetails.eventName"
       }
     }
