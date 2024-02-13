@@ -136,18 +136,32 @@ exports.likePostController = async (req, res, next) => {
     const isLiked = post.likes && post.likes.includes(userId);
 
     if (isLiked) {
-      await updatePost({ _id: postId }, { $pull: { likes: userId } });
+      const updatedPost = await updatePost(
+        { _id: postId },
+        { $pull: { likes: userId } }
+      );
 
       return generateResponse(
-        { likeStatus: false },
+        {
+          likeStatus: false,
+          likesCount: updatedPost.likes.length,
+          commentsCount: updatedPost.comments.length,
+        },
         "Post unliked successfully",
         res
       );
     } else {
-      await updatePost({ _id: postId }, { $push: { likes: userId } });
+      const updatedPost = await updatePost(
+        { _id: postId },
+        { $push: { likes: userId } }
+      );
 
       return generateResponse(
-        { likeStatus: true },
+        {
+          likeStatus: true,
+          likesCount: updatedPost.likes.length,
+          commentsCount: updatedPost.comments.length,
+        },
         "Post liked successfully",
         res
       );
@@ -397,7 +411,6 @@ exports.retrieveDeletedPostsController = async (req, res, next) => {
       currentUserId = mongoose.Types.ObjectId(req.user.id);
     }
 
-     
     const query = getDeletedPostsQuery(currentUserId);
     const result = await getAllPosts({
       query,
@@ -418,7 +431,6 @@ exports.retrieveDeletedPostsController = async (req, res, next) => {
 //get post of a user
 exports.getPostOfUserController = async (req, res, next) => {
   try {
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     let currentUserId;
@@ -451,6 +463,7 @@ exports.deleteCommentController = async (req, res, next) => {
     const commentId = mongoose.Types.ObjectId(req.params.commentId);
     const userId = mongoose.Types.ObjectId(req.user.id);
     const comment = await findComment({ _id: commentId });
+    const postId = mongoose.Types.ObjectId(req.query.postId);
 
     if (!comment)
       return next({
@@ -463,6 +476,11 @@ exports.deleteCommentController = async (req, res, next) => {
         message: "You are not authorized to delete this comment",
       });
     await deleteComment({ _id: commentId });
+    const updatedPost = await updatePost(
+      { _id: postId },
+      { $pull: { comments: commentId } }
+    );
+    console.log(updatedPost);
     return generateResponse(
       { deleteStatus: true },
       "Comment deleted successfully",
@@ -481,17 +499,17 @@ exports.deleteCommentController = async (req, res, next) => {
 
 exports.getPostsOfUserTaggedInController = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page)||1;
-    const limit = parseInt(req.query.limit)||10;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const currentUserId = mongoose.Types.ObjectId(req.user.id);
-    let userId = req.query.userId
+    let userId = req.query.userId;
 
     let query;
-    if(!userId){
+    if (!userId) {
       query = getPostsOfUserTaggedInQuery(currentUserId);
-    }else{
+    } else {
       userId = mongoose.Types.ObjectId(userId);
-      query = getPostsOfUserTaggedInQuery(currentUserId,userId);
+      query = getPostsOfUserTaggedInQuery(currentUserId, userId);
     }
     const result = await getAllPosts({
       query,
@@ -507,4 +525,4 @@ exports.getPostsOfUserTaggedInController = async (req, res, next) => {
       message: "internal server error",
     });
   }
-}
+};

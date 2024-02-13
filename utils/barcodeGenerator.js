@@ -2,7 +2,7 @@ const bwipjs = require("bwip-js");
 
 exports.generateBarcode = (ticketId) => {
   return new Promise((resolve, reject) => {
-    
+
     // Create a unique string for barcode using userId and eventId
     const barcodeString = `${process.env.BASE_URL}/api/ticket/barcode/verify?ticketId=${ticketId}`
 
@@ -23,8 +23,8 @@ exports.generateBarcode = (ticketId) => {
           reject(err);
         } else {
           // If you prefer a base64 string, you can convert the buffer
-          // const base64Data = pngBuffer.toString("base64");
-          resolve(pngBuffer);
+          const base64Data = pngBuffer.toString("base64");
+          resolve(base64Data);
         }
       }
     );

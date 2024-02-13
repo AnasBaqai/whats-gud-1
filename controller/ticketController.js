@@ -171,7 +171,7 @@ exports.createNewTicket = async (req, res, next) => {
 async function createAndValidateTicket(userId, eventId, price, quantity) {
   const ticketId = new mongoose.Types.ObjectId();
   const barcode = await generateBarcode(ticketId.toString());
-  const barcodeUrl = await s3Uploadv3([barcode]);
+  const barcodeUrl = await s3Uploadv3([barcode],true);
   const ticketData = {
     _id: ticketId,
     userId,
