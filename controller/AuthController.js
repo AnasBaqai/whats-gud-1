@@ -211,7 +211,7 @@ exports.registerUser = async (req, res, next) => {
 
     // Optionally, create relations asynchronously if it's not required to wait for its completion
    await  createRelation({ user: newUser._id });
-    const vericationUrl = `https://whatsgud.cyclic.app/api/auth/verify?userId=${newUser._id}`;
+    const vericationUrl = `${process.env.BASE_URL}/api/auth/verify?userId=${newUser._id}`;
     const message = 'Thank you for signing up, please verify your email by clicking the link below \n\n' + vericationUrl + '\n\n'
     await Mailer.sendEmail({
       email: newUser.email,
