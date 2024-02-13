@@ -6,3 +6,5 @@ module.exports = async() => {
         .then(() => console.log('Connected to DB'))
         .catch((error) => console.log("db error: ", error));
 }
+
+
