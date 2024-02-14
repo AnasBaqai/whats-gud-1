@@ -17,6 +17,7 @@ const { TICKET_STATUS } = require("../utils/constants");
 const { ticketValidation } = require("../validation/ticketValidation");
 const { updateUser, findUser } = require("../models/userModel");
 const { getUserTicketsQuery } = require("./queries/ticketQueries");
+const { constants } = require("crypto");
 const stripe = require("stripe")(
   "sk_test_51OUd7mHbqQR9UTxNCpWRsgtfoDlQSI5EFOm6vKrjz6F5rWb6y96zkpigrVK4ib1rHUQJz7lNUAhfNofL2zfuy8xb0095zYWfAX"
 );
@@ -135,8 +136,12 @@ exports.createNewTicket = async (req, res, next) => {
     const eventIdObj = mongoose.Types.ObjectId(eventId);
     const event = await findEvent({ _id: eventIdObj });
 
-    const ticketsBought = await countTickets({ eventId: eventIdObj });
-
+    const result = await findManyTickets([
+      { $match: { eventId: eventIdObj } },
+      { $group: { _id: null, totalQuantity: { $sum: "$quantity" } } }
+    ]);
+    const ticketsBought= result.length > 0 ? result[0].totalQuantity : 0;
+    console.log(ticketsBought);
     // Check event capacity
     if (ticketsBought + quantity > event.capacity) {
       return next({
