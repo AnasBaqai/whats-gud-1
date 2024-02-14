@@ -101,9 +101,9 @@ exports.getAnyUserProfileCount = async (req, res, next) => {
       "firstName lastName image _id email"
     );
     // count of events created by the user
-    const eventCount = await countEventDocumentsByUser({ creator: userId});
+    const eventCount = await countEventDocumentsByUser({ creator: userId });
     // get postCount by user
-    const postCount = await countPost({ postedBy: userId, isDeleted: false});
+    const postCount = await countPost({ postedBy: userId, isDeleted: false });
     // get count of events attended
     const eventsAttended = await findManyTickets([
       {
@@ -132,7 +132,7 @@ exports.getAnyUserProfileCount = async (req, res, next) => {
         postCount,
         eventsCreated: eventCount,
         eventsAttended:
-        eventsAttended.length !== 0 ? eventsAttended[0].totalCount : 0,
+          eventsAttended.length !== 0 ? eventsAttended[0].totalCount : 0,
         isFollowing,
         isFollower,
       },
@@ -148,19 +148,35 @@ exports.getAnyUserProfileCount = async (req, res, next) => {
   }
 };
 
-
 // send list of users only which are following the user and user is following
 exports.getMutualConnectionList = async (req, res, next) => {
   try {
     const userId = mongoose.Types.ObjectId(req.user.id);
     const relation = await findRelation({ user: userId });
-    const mutualConnections = relation.followers.filter(follower => 
+    const mutualConnections = relation.followers.filter((follower) =>
       relation.following.includes(follower)
     );
-    const mutualConnectionsList = await findUsers({ _id: { $in: mutualConnections } }).select("firstName lastName image _id email");
+    let searchTerm = req.query.search;
+    console.log(searchTerm);
+    console.log(mutualConnections);
+    let queryConditions = { _id: { $in: mutualConnections } };
+    if (req.query.search!=="") {
+      console.log("searching");
+      let searchTerms = searchTerm.split(" ");
+
+      let andConditions = searchTerms.map((term) => ({
+        $or: [
+          { firstName: { $regex: `\\b${term}`, $options: "i" } },
+          { lastName: { $regex: `\\b${term}`, $options: "i" } },
+        ],
+      }));
+      queryConditions = { ...queryConditions, $and: andConditions };
+    }
+    const mutualConnectionsList = await findUsers(queryConditions).select("firstName lastName image _id email");
+    // Add search conditions to the query
 
     return generateResponse(
-     mutualConnectionsList,
+      mutualConnectionsList,
       "Followers and following list fetched",
       res
     );
@@ -172,4 +188,3 @@ exports.getMutualConnectionList = async (req, res, next) => {
     });
   }
 };
-
