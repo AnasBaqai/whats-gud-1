@@ -62,10 +62,11 @@ exports.getAllEventsController = async (req, res, next) => {
     const userId = mongoose.Types.ObjectId(req.user.id);
     const user = await findUser({ _id: userId });
     let subCategoryIds = req.body.subCategoryIds || [];
-
+    const longitude = user.location.coordinates[0];
+    const latitude = user.location.coordinates[1];
     //convert subCategoryIds to objectIds
     subCategoryIds = subCategoryIds.map((id) => mongoose.Types.ObjectId(id));
-
+    console.log(subCategoryIds);
     let pipeline;
     if (req.query.mainCategoryId) {
       const mainCategoryId = mongoose.Types.ObjectId(req.query.mainCategoryId);
@@ -80,7 +81,7 @@ exports.getAllEventsController = async (req, res, next) => {
     }
     pipeline.unshift({
       $geoNear: {
-        near: { type: "Point", coordinates: user.location.coordinates },
+        near: { type: "Point", coordinates: [longitude, latitude] },
         distanceField: "dist.calculated",
         maxDistance: 7000, // 7 km in meters
         spherical: true,
@@ -148,6 +149,11 @@ exports.giveEventCount = async (req, res, next) => {
           distanceField: "dist.calculated",
           maxDistance: 7000, // 7 km in meters
           spherical: true,
+        },
+      },
+      {
+        $match: {
+          dateAndTime: { $gte: new Date() }, // Filter events with dateAndTime greater than or equal to the current date
         },
       },
       {
@@ -252,7 +258,7 @@ exports.getUserProfileEvents = async (req, res, next) => {
     const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
     const limit = parseInt(req.query.limit) || 10; // Default to a limit if not provided
 
-    query = getuserCreatedEventsQuery(userId,currentUserId);
+    query = getuserCreatedEventsQuery(userId, currentUserId);
 
     const events = await getAllEvents({
       query,
@@ -311,9 +317,8 @@ exports.getOrganizers = async (req, res, next) => {
       page,
       limit,
       responseKey: "organizers",
-    
     });
-    
+
     return generateResponse(organizers, "Organizers fetched successfully", res);
   } catch (error) {
     console.log(error.message);
@@ -335,9 +340,8 @@ exports.getCelebrity = async (req, res, next) => {
       page,
       limit,
       responseKey: "celebs",
-    
     });
-    
+
     return generateResponse(celebs, "Organizers fetched successfully", res);
   } catch (error) {
     console.log(error.message);

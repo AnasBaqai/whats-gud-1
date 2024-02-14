@@ -33,7 +33,7 @@ exports.getAllEventsQuery = (
     // match only based on the date
     matchCondition = dateCondition;
   }
-
+ 
   return [
     // Match events with the specified main category ID
     {
