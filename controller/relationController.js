@@ -158,10 +158,10 @@ exports.getMutualConnectionList = async (req, res, next) => {
     );
     let searchTerm = req.query.search;
     console.log(searchTerm);
-    console.log(mutualConnections);
+ 
     let queryConditions = { _id: { $in: mutualConnections } };
     if (req.query.search!=="") {
-      console.log("searching");
+      
       let searchTerms = searchTerm.split(" ");
 
       let andConditions = searchTerms.map((term) => ({

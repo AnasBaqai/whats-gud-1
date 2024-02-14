@@ -33,7 +33,7 @@ exports.getAllEventsQuery = (
     // match only based on the date
     matchCondition = dateCondition;
   }
- 
+
   return [
     // Match events with the specified main category ID
     {
@@ -68,15 +68,21 @@ exports.getAllEventsQuery = (
     },
     {
       $lookup: {
-        from: "tickets", // This should be the actual name of the tickets collection
-        localField: "_id", // The local field on the event document
-        foreignField: "eventId", // The field on the ticket document
-        as: "soldTickets", // The name for the resulting array
+        from: "tickets", // Join with the tickets collection
+        localField: "_id", // Local field in the event document
+        foreignField: "eventId", // Corresponding field in the ticket document
+        as: "soldTickets", // The resulting array of matched tickets
       },
     },
     {
       $addFields: {
-        ticketsSold: { $size: "$soldTickets" },
+        ticketsSold: {
+          $reduce: {
+            input: "$soldTickets",
+            initialValue: 0,
+            in: { $add: ["$$value", "$$this.quantity"] },
+          },
+        },
       },
     },
     {
@@ -265,15 +271,21 @@ exports.getFavEventsQuery = (currentUserId) => {
     },
     {
       $lookup: {
-        from: "tickets", // This should be the actual name of the tickets collection
-        localField: "_id", // The local field on the event document
-        foreignField: "eventId", // The field on the ticket document
-        as: "soldTickets", // The name for the resulting array
+        from: "tickets", // Join with the tickets collection
+        localField: "_id", // Local field in the event document
+        foreignField: "eventId", // Corresponding field in the ticket document
+        as: "soldTickets", // The resulting array of matched tickets
       },
     },
     {
       $addFields: {
-        ticketsSold: { $size: "$soldTickets" },
+        ticketsSold: {
+          $reduce: {
+            input: "$soldTickets",
+            initialValue: 0,
+            in: { $add: ["$$value", "$$this.quantity"] },
+          },
+        },
       },
     },
     {
@@ -464,15 +476,21 @@ exports.getuserCreatedEventsQuery = (userId, currentUserId) => {
     },
     {
       $lookup: {
-        from: "tickets", // This should be the actual name of the tickets collection
-        localField: "_id", // The local field on the event document
-        foreignField: "eventId", // The field on the ticket document
-        as: "soldTickets", // The name for the resulting array
+        from: "tickets", // Join with the tickets collection
+        localField: "_id", // Local field in the event document
+        foreignField: "eventId", // Corresponding field in the ticket document
+        as: "soldTickets", // The resulting array of matched tickets
       },
     },
     {
       $addFields: {
-        ticketsSold: { $size: "$soldTickets" },
+        ticketsSold: {
+          $reduce: {
+            input: "$soldTickets",
+            initialValue: 0,
+            in: { $add: ["$$value", "$$this.quantity"] },
+          },
+        },
       },
     },
     {
@@ -776,11 +794,14 @@ exports.getCelebQuery = (currentUserId) => {
 };
 
 // all user related aggregate / long queries here
-exports.searchEventsQuery = (searchTerm = null,currentUserId) => {
+exports.searchEventsQuery = (searchTerm = null, currentUserId) => {
   return [
     // Match events with the specified main category ID
     {
-      $match: { eventName: { $regex: searchTerm, $options: "i" }, dateAndTime: { $gte: new Date() } },
+      $match: {
+        eventName: { $regex: searchTerm, $options: "i" },
+        dateAndTime: { $gte: new Date() },
+      },
     },
     // Populate the main category
     {
@@ -811,15 +832,21 @@ exports.searchEventsQuery = (searchTerm = null,currentUserId) => {
     },
     {
       $lookup: {
-        from: "tickets", // This should be the actual name of the tickets collection
-        localField: "_id", // The local field on the event document
-        foreignField: "eventId", // The field on the ticket document
-        as: "soldTickets", // The name for the resulting array
+        from: "tickets", // Join with the tickets collection
+        localField: "_id", // Local field in the event document
+        foreignField: "eventId", // Corresponding field in the ticket document
+        as: "soldTickets", // The resulting array of matched tickets
       },
     },
     {
       $addFields: {
-        ticketsSold: { $size: "$soldTickets" },
+        ticketsSold: {
+          $reduce: {
+            input: "$soldTickets",
+            initialValue: 0,
+            in: { $add: ["$$value", "$$this.quantity"] },
+          },
+        },
       },
     },
     {
