@@ -12,6 +12,7 @@ class ChatRepository {
   async getChats(userId, page = 1, pageSize = 20, chatSupport = false,chatId=null) {
     try {
       const skip = (page - 1) * pageSize;
+      console.log(skip,page, pageSize, chatSupport, chatId)
       const currentUserId = new mongoose.Types.ObjectId(userId);
       const chatSupportPip = { isChatSupport: (chatSupport == 'true' || chatSupport == true) }
       if(chatId) chatSupportPip._id  =new  mongoose.Types.ObjectId(chatId);
@@ -399,12 +400,12 @@ class ChatRepository {
         }
       });
       console.log(userIds)    
-      this.sendNotificationMsg({
-        userIds,
-        title: name,
-        body: messageBody,
-        chatId,
-      },chat);
+      // this.sendNotificationMsg({
+      //   userIds,
+      //   title: name,
+      //   body: messageBody,
+      //   chatId,
+      // },chat);
       return updatedChat;
     } catch (error) {
       // Handle error
@@ -828,7 +829,7 @@ class ChatRepository {
   }
   async createChat(userId, participantIds, chatType, groupName, groupImageUrl) {
     try{
-      let match = { 'participants.userId': { $all: participantIds }, ...deleteFields }
+      let match = { 'participants.userId': { $all: participantIds },'deleted': false }
     let check = null;
     if (chatType == 'one-to-one') {
       match.chatType = 'one-to-one';

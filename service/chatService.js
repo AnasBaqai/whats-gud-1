@@ -9,10 +9,11 @@ module.exports = (io) => {
     console.log("new client connected");
     const chatRepository = new ChatRepository(io);
     socket.on("request", async (data) => {
+      console.log(data)
       console.log("request function executed");
       console.log(clients);
       clients[data.userId] = socket.id;
-      await chatRepository.getChats(data.userId, data.page ?? 0, 20, data.chatSupport ?? false);
+      await chatRepository.getChats(data.userId, data.page ?? 1, 20, data.chatSupport ?? false);
     });
     socket.on("getChatMessages", async (data) => {
       console.log("request function executed");
@@ -70,6 +71,7 @@ module.exports = (io) => {
     //   await chatRepository.removeAdmins(data.chatId, data.userId, data.adminIds)
     // })
     socket.on('createChat', async (data) => {
+      console.log(data)
       await chatRepository.createChat(data.userId, data.participantIds, data.chatType, data.groupName)
     })
     socket.on('updateChat', async (data) => {
