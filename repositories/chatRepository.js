@@ -8,14 +8,22 @@ class ChatRepository {
   constructor(io) {
     this.io = io;
   }
- 
-  async getChats(userId, page = 1, pageSize = 20, chatSupport = false,chatId=null) {
+
+  async getChats(
+    userId,
+    page = 1,
+    pageSize = 20,
+    chatSupport = false,
+    chatId = null
+  ) {
     try {
       const skip = (page - 1) * pageSize;
-      console.log(skip,page, pageSize, chatSupport, chatId)
+      console.log(skip, page, pageSize, chatSupport, chatId);
       const currentUserId = new mongoose.Types.ObjectId(userId);
-      const chatSupportPip = { isChatSupport: (chatSupport == 'true' || chatSupport == true) }
-      if(chatId) chatSupportPip._id  =new  mongoose.Types.ObjectId(chatId);
+      const chatSupportPip = {
+        isChatSupport: chatSupport == "true" || chatSupport == true,
+      };
+      if (chatId) chatSupportPip._id = new mongoose.Types.ObjectId(chatId);
       const result = await ChatModel.aggregate([
         {
           $match: {
@@ -64,6 +72,7 @@ class ChatRepository {
                   lastName: 1,
                   email: 1,
                   photo: 1,
+                  image: 1,
                 },
               },
             ],
@@ -311,12 +320,11 @@ class ChatRepository {
         $group: {
           _id: "$_id",
           messages: { $push: "$messages" },
-          // totalCount: { $sum: 1 }, // Calculate the total count of messages in the chat
-          // unReadCount: { $sum: "$unReadCount" }, // Calculate the total count of unread messages in the chat
+          totalCount: { $sum: 1 }, // Calculate the total count of messages in the chat
+          unReadCount: { $sum: "$unReadCount" }, // Calculate the total count of unread messages in the chat
         },
       },
     ]);
-
 
     // Step 3: Extract the messages, total count, and unread count from the result
     const messages = result.length > 0 ? result[0].messages : [];
@@ -354,9 +362,13 @@ class ChatRepository {
         deleted: false,
         // Add other message properties if needed
       };
-      if(chat.participants.some((e)=>e.isBlocked)) {
-        if(this.io) this.io.emit(`newMessage/${chatId}/${senderId}`,'cannot send message due to block')
-        return 'cannot send message due to block'
+      if (chat.participants.some((e) => e.isBlocked)) {
+        if (this.io)
+          this.io.emit(
+            `newMessage/${chatId}/${senderId}`,
+            "cannot send message due to block"
+          );
+        return "cannot send message due to block";
       }
       chat.participants.forEach((participant) => {
         if (participant.status == "active" && participant.userId != senderId) {
@@ -384,28 +396,28 @@ class ChatRepository {
       const userIds = [];
       chat.participants.forEach(async (participant) => {
         if (participant.status == "active" && participant.userId != senderId) {
-          if(!participant.isMuted)
-            userIds.push(participant.userId)
+          if (!participant.isMuted) userIds.push(participant.userId);
           // console.log(`newMessage/${chatId}/${participant.userId}`)
           if (this.io) {
-            this.io.emit(
-              `newMessage/${chatId}/${participant.userId}`,
-              { ...newMessage, name, firstName: name }
-            );
+            this.io.emit(`newMessage/${chatId}/${participant.userId}`, {
+              ...newMessage,
+              name,
+              firstName: name,
+            });
             // this.io.emit(
             //   `getChats/${participant.userId}`, await this.getChats(participant.userId)
             // );
-            await this.getChats(participant.userId)
+            await this.getChats(participant.userId);
           }
         }
       });
-      console.log(userIds)    
-      // this.sendNotificationMsg({
-      //   userIds,
-      //   title: name,
-      //   body: messageBody,
-      //   chatId,
-      // },chat);
+      console.log(userIds);
+      this.sendNotificationMsg({
+        userIds,
+        title: name,
+        body: messageBody,
+        chatId,
+      },chat);
       return updatedChat;
     } catch (error) {
       // Handle error
@@ -492,7 +504,7 @@ class ChatRepository {
         ],
       };
       const result = await ChatModel.updateMany(filter, update, options);
-      console.log(result)
+      console.log(result);
       if (this.io)
         this.io.emit(`deleteMessages/${chatId}/${userId}`, {
           message:
@@ -508,6 +520,8 @@ class ChatRepository {
     }
   }
   async deleteSelectedMessage(chatId, userId, msgIds) {
+    console.log(chatId, userId, msgIds);
+    
     try {
       const filter = {
         _id: chatId,
@@ -542,10 +556,10 @@ class ChatRepository {
       const result = await ChatModel.updateMany(filter, update, options);
       if (this.io)
         this.io.emit(`deleteSelectedMessages/${chatId}/${userId}`, {
-          // message:
-          //   result.modifiedCount > 0
-          //     ? "selected messages deleted"
-          //     : "operation unsuccessful",
+          message:
+            result.modifiedCount > 0
+              ? "selected messages deleted"
+              : "operation unsuccessful",
           result,
         });
       return result;
@@ -560,20 +574,29 @@ class ChatRepository {
       console.log({ chatId, participantIds });
       const filter = { _id: chatId };
       const participantsToAdd = await findUsers({ _id: participantIds });
-      let username = '';
-      participantsToAdd.map((e) => username += `${e.firstName ?? ''} ${e.lastName ?? ''}, `);
-  
+      let username = "";
+      participantsToAdd.map(
+        (e) => (username += `${e.firstName ?? ""} ${e.lastName ?? ""}, `)
+      );
+
       const update = {
-        $addToSet: { participants: { $each: participantIds.map(userId => ({ userId,status:'active' })) } },
+        $addToSet: {
+          participants: {
+            $each: participantIds.map((userId) => ({
+              userId,
+              status: "active",
+            })),
+          },
+        },
       };
-  
+
       let result = await ChatModel.findOneAndUpdate(filter, update)
         .select("-messages")
         .populate({
           path: "participants.userId",
           select: "username firstName lastName _id photo",
         });
-  
+
       const msg = {
         _id: new mongoose.Types.ObjectId(),
         body: `${username}joined the group`,
@@ -581,19 +604,19 @@ class ChatRepository {
         groupName: result.groupName,
         sentBy: null,
         receivedBy: result.participants.map((e) => ({
-          'userId': e.userId,
-          'status': 'seen'
-        }))
+          userId: e.userId,
+          status: "seen",
+        })),
       };
-  
+
       await result.update({
         $push: {
-          messages: msg
-        }
+          messages: msg,
+        },
       });
-  
+
       await result.save();
-  
+
       if (this.io) {
         result.participants.forEach(async (participant) => {
           if (participant.status == "active") {
@@ -605,16 +628,16 @@ class ChatRepository {
             // this.io.emit(
             //   `getChats/${participant.userId._id}`, await this.getChats(participant.userId)
             // );
-            await this.getChats(participant.userId)
+            await this.getChats(participant.userId);
           }
         });
-  
+
         this.io.emit(`addParticipants/${chatId}`, {
           message: "added participants",
           result,
         });
       }
-  
+
       return result;
     } catch (error) {
       console.error("Error adding participants:", error);
@@ -628,8 +651,8 @@ class ChatRepository {
       console.log({ chatId, participantIds });
       const filter = { _id: chatId /*admins: userId*/ };
       const u = await findUsers({ _id: participantIds });
-      let username = '';
-      u.map((e) => username += `${e.firstName ?? ''} ${e.lastName ?? ''}, `);
+      let username = "";
+      u.map((e) => (username += `${e.firstName ?? ""} ${e.lastName ?? ""}, `));
       // console.log(username)
       const update = {
         $pull: { participants: { userId: { $in: participantIds } } },
@@ -648,20 +671,22 @@ class ChatRepository {
         groupName: result.groupName,
         sentBy: null,
         receivedBy: result.participants.map((e) => ({
-          'userId': e.userId,
-          'status': 'seen'
-        }))
+          userId: e.userId,
+          status: "seen",
+        })),
       };
       await result.update({
         $push: {
-          messages: msg
-        }
-      })
+          messages: msg,
+        },
+      });
       const userIds = [];
       // console.log(result)
-      await result.save()
+      await result.save();
       if (participantIds.includes(result.createdBy.toString()))
-        result = await ChatModel.findOneAndUpdate(filter, { createdBy: result.participants[0].userId._id }).populate({
+        result = await ChatModel.findOneAndUpdate(filter, {
+          createdBy: result.participants[0].userId._id,
+        }).populate({
           path: "participants.userId",
           select: "username firstName lastName _id  photo status",
         });
@@ -670,7 +695,11 @@ class ChatRepository {
         result.participants.forEach(async (participant) => {
           if (participant.status == "active") {
             // console.log(participant.userId._id.toString())
-            if(participantIds[0] !== participant.userId._id && !participant.isMuted) userIds.push(participant.userId._id)
+            if (
+              participantIds[0] !== participant.userId._id &&
+              !participant.isMuted
+            )
+              userIds.push(participant.userId._id);
             // console.log(`newMessage/${chatId}/${participant.userId}`)
             // if (this.io) {
             this.io.emit(
@@ -680,7 +709,7 @@ class ChatRepository {
             // this.io.emit(
             //   `getChats/${participant.userId._id}`, await this.getChats(participant.userId)
             // );
-            await this.getChats(participant.userId)
+            await this.getChats(participant.userId);
             // }
           }
         });
@@ -692,13 +721,16 @@ class ChatRepository {
           result,
         });
       }
-        this.sendNotificationMsg({
+      this.sendNotificationMsg(
+        {
           userIds,
           title: result.groupName,
           body: `${username}leave the group`,
           chatId,
-        },result);
-      
+        },
+        result
+      );
+
       return result;
     } catch (error) {
       console.error("Error removing participants:", error);
@@ -769,41 +801,49 @@ class ChatRepository {
       throw error;
     }
   }
-  async createChatSupport(userId, topic = 'new topic') {
-    const check = await ChatModel.findOne({ isChatSupport: true, isTicketClosed: false, createdBy: userId }).select('-messages -participants')
+  async createChatSupport(userId, topic = "new topic") {
+    const check = await ChatModel.findOne({
+      isChatSupport: true,
+      isTicketClosed: false,
+      createdBy: userId,
+    }).select("-messages -participants");
     if (check && this.io) {
-      this.io.emit(`createChatSupport/${userId}`, { message: 'you already have an open tickets. Please close those tickets to create new one' })
-      return check
+      this.io.emit(`createChatSupport/${userId}`, {
+        message:
+          "you already have an open tickets. Please close those tickets to create new one",
+      });
+      return check;
     }
-    const u = await findUsers({ role: 'admin', isActive: true })
+    const u = await findUsers({ role: "admin", isActive: true });
     // console.log(u)
     let data = await ChatModel.create({
       groupName: topic,
-      chatType: 'group',
+      chatType: "group",
       isChatSupport: true,
       // groupImageUrl,
-      participants: [{
-        userId: userId,
-        status: "active",
-      }, ...u.map((e) => ({ userId: e._id, status: 'active' }))],
+      participants: [
+        {
+          userId: userId,
+          status: "active",
+        },
+        ...u.map((e) => ({ userId: e._id, status: "active" })),
+      ],
       createdBy: userId,
       messages: [
         {
-          "body": "welcome to chat support.",
-          "sentBy": u[0]._id,
-          "receivedBy": [
+          body: "welcome to chat support.",
+          sentBy: u[0]._id,
+          receivedBy: [
             {
               userId,
             }, //...u.map((e) => ({ userId: e._id }))
           ],
-          "deleted": false,
+          deleted: false,
         },
-      ]
+      ],
       // admins: chatType == "one-to-one" ? [] : [userId],
     });
-    data = await ChatModel.aggregate(
-      findUserpipeline({ _id: data._id })
-    );
+    data = await ChatModel.aggregate(findUserpipeline({ _id: data._id }));
     if (this.io)
       data[0].participants.forEach((e) => {
         // if(e!=userId)
@@ -816,7 +856,10 @@ class ChatRepository {
   }
 
   async closeChatSupport(chatId, userId) {
-    const data = await ChatModel.findOneAndUpdate({ _id: chatId, isChatSupport: true }, { isTicketClosed: true }).select('-messages')
+    const data = await ChatModel.findOneAndUpdate(
+      { _id: chatId, isChatSupport: true },
+      { isTicketClosed: true }
+    ).select("-messages");
     if (this.io) {
       data.participants.forEach((e) => {
         // if(e!=userId)
@@ -828,62 +871,62 @@ class ChatRepository {
     }
   }
   async createChat(userId, participantIds, chatType, groupName, groupImageUrl) {
-    try{
-      let match = { 'participants.userId': { $all: participantIds },'deleted': false }
-    let check = null;
-    if (chatType == 'one-to-one') {
-      match.chatType = 'one-to-one';
-      check = await ChatModel.findOne(
-        match
-      )
-    }
-    if (check) {
-      check = await ChatModel.aggregate(
-        findUserpipeline({ _id: check._id })
-      );
+    try {
+      let match = {
+        "participants.userId": { $all: participantIds },
+        deleted: false,
+      };
+      let check = null;
+      if (chatType == "one-to-one") {
+        match.chatType = "one-to-one";
+        check = await ChatModel.findOne(match);
+      }
+      if (check) {
+        check = await ChatModel.aggregate(findUserpipeline({ _id: check._id }));
+        if (this.io)
+          participantIds.forEach((e) => {
+            this.io.emit(`createChat/${e}`, {
+              message: "chat already exits",
+              data: check[0],
+            });
+          });
+        return check[0];
+      }
+      const data = await ChatModel.create({
+        groupName,
+        chatType,
+        groupImageUrl,
+        participants: participantIds.map((e) => ({
+          userId: e,
+          status: "active",
+        })),
+        createdBy: chatType == "one-to-one" ? null : userId,
+        admins: chatType == "one-to-one" ? [] : [userId],
+      });
+      const d = await ChatModel.aggregate(findUserpipeline({ _id: data._id }));
       if (this.io)
         participantIds.forEach((e) => {
+          // if(e!=userId)
           this.io.emit(`createChat/${e}`, {
-            message: "chat already exits",
-            data: check[0],
+            message: "chat created",
+            data: d[0],
           });
         });
-      return check[0]
-    };
-    const data = await ChatModel.create({
-      groupName,
-      chatType,
-      groupImageUrl,
-      participants: participantIds.map((e) => ({
-        userId: e,
-        status: "active",
-      })),
-      createdBy: chatType == "one-to-one" ? null : userId,
-      admins: chatType == "one-to-one" ? [] : [userId],
-    });
-    const d = await ChatModel.aggregate(
-      findUserpipeline({ _id: data._id })
-    );
-    if (this.io)
-      participantIds.forEach((e) => {
-        // if(e!=userId)
-        this.io.emit(`createChat/${e}`, {
-          message: "chat created",
-          data: d[0],
-        });
-      });
-      if(chatType==='group'){
-      this.sendNotificationMsg({
-        userIds:participantIds.filter(item => item !== userId),
-        title: groupName,
-        body: 'You are added to a group',
-       chatId: d[0]._id,
-      },d[0])
-    }  
-    return d[0];
-    }catch(e){
-      console.log(e)
-      return e
+      if (chatType === "group") {
+        this.sendNotificationMsg(
+          {
+            userIds: participantIds.filter((item) => item !== userId),
+            title: groupName,
+            body: "You are added to a group",
+            chatId: d[0]._id,
+          },
+          d[0]
+        );
+      }
+      return d[0];
+    } catch (e) {
+      console.log(e);
+      return e;
     }
   }
 
@@ -895,12 +938,12 @@ class ChatRepository {
       // Match the desired chat using its ID or any other criteria
       {
         $match: {
-          _id: new mongoose.Types.ObjectId(chatId)
-        }
+          _id: new mongoose.Types.ObjectId(chatId),
+        },
       },
       // Unwind the messages array to create separate documents for each message
       {
-        $unwind: "$messages"
+        $unwind: "$messages",
       },
       // Match only the messages with non-empty mediaUrls
       {
@@ -916,7 +959,7 @@ class ChatRepository {
               "messages.receivedBy.deleted": { $ne: true },
             },
           ],
-        }
+        },
       },
       // Group the mediaUrls from all matching messages into a single array
       {
@@ -925,10 +968,10 @@ class ChatRepository {
           messages: {
             $push: {
               messageId: "$messages._id",
-              mediaUrls: "$messages.mediaUrls"
-            }
-          }
-        }
+              mediaUrls: "$messages.mediaUrls",
+            },
+          },
+        },
       },
       // Project the result to show messageId instead of _id
       {
@@ -938,8 +981,8 @@ class ChatRepository {
             $reduce: {
               input: "$messages.mediaUrls",
               initialValue: [],
-              in: { $concatArrays: ["$$value", "$$this"] }
-            }
+              in: { $concatArrays: ["$$value", "$$this"] },
+            },
           },
           messages: {
             $map: {
@@ -947,70 +990,88 @@ class ChatRepository {
               as: "msg",
               in: {
                 messageId: "$$msg.messageId",
-                mediaUrls: "$$msg.mediaUrls"
-              }
-            }
-          }
-        }
-      }
+                mediaUrls: "$$msg.mediaUrls",
+              },
+            },
+          },
+        },
+      },
     ]);
     return mediaFiles;
   }
 
   async updateChat(chatId, groupName = null, image = null) {
     let data = {};
-    if (groupName)
-      data.groupName = groupName;
-    if (image)
-      data.groupImageUrl = image;
+    if (groupName) data.groupName = groupName;
+    if (image) data.groupImageUrl = image;
     let m = await ChatModel.updateOne(
-      { _id: chatId, chatType: 'group' },
-      { ...data },
+      { _id: chatId, chatType: "group" },
+      { ...data }
     );
     m = null;
-    m = (await ChatModel.aggregate(
-      [{ $match: { _id: new mongoose.Types.ObjectId(chatId) } }, ...findUserpipeline({})]
-    ))[0];
+    m = (
+      await ChatModel.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(chatId) } },
+        ...findUserpipeline({}),
+      ])
+    )[0];
     // console.log(m)
-    this.io.emit(`updateChat/${chatId}`, m)
+    this.io.emit(`updateChat/${chatId}`, m);
     m.participants.forEach(async (e) => {
-      if (e.status == 'active')
-      // this.io.emit(`getChats/${e.userId.toString()}`, await this.getChats(e.userId))
-      await this.getChats(e.userId)
-    })
+      if (e.status == "active")
+        // this.io.emit(`getChats/${e.userId.toString()}`, await this.getChats(e.userId))
+        await this.getChats(e.userId);
+    });
     return m;
   }
   async updateAllChat() {
-    return await ChatModel.updateMany({}, { isChatSupport: false, isTicketClosed: false })
+    return await ChatModel.updateMany(
+      {},
+      { isChatSupport: false, isTicketClosed: false }
+    );
   }
-  async updateMuteStatus(data){
-    const chat =await ChatModel.findOne({_id:data.chatId,'participants.userId':data.userId}).select('participants')
-    chat.participants.forEach((e)=>{
-      if(e.userId.toString()==data.userId)
-        {e.isMuted = data.isMuted
-          return;
-        }
-    })
-    return await chat.save()
+  async updateMuteStatus(data) {
+    const chat = await ChatModel.findOne({
+      _id: data.chatId,
+      "participants.userId": data.userId,
+    }).select("participants");
+    chat.participants.forEach((e) => {
+      if (e.userId.toString() == data.userId) {
+        e.isMuted = data.isMuted;
+        return;
+      }
+    });
+    return await chat.save();
   }
-  async updateBlockStatus(data){
-    const chat =await ChatModel.findOne({_id:data.chatId,'participants.userId':data.userId}).select('participants')
-    chat.participants.forEach((e)=>{
-      if(e.userId.toString()==data.userId)
-        {e.isBlocked = data.isBlocked
-          return;
-        }
-    })
-    if(this.io)
-    this.io.emit(`updateBlockStatus/${data.userId}`,'user block status updated')
-    return await chat.save()
+  async updateBlockStatus(data) {
+    const chat = await ChatModel.findOne({
+      _id: data.chatId,
+      "participants.userId": data.userId,
+    }).select("participants");
+    chat.participants.forEach((e) => {
+      if (e.userId.toString() == data.userId) {
+        e.isBlocked = data.isBlocked;
+        return;
+      }
+    });
+    if (this.io)
+      this.io.emit(
+        `updateBlockStatus/${data.userId}`,
+        "user block status updated"
+      );
+    return await chat.save();
   }
-  async sendNotificationMsg(data,chat={}){
-    const users = await findUsers({_id:data.userIds}).select('fcmToken _id')
-    console.log(users)
-    users.forEach((e)=>{
-      sendNotification({title : data.title,body:data.body,fcmToken : e.fcmToken,data:{chatId:data.chatId,userId:e._id}})
-    })
+  async sendNotificationMsg(data, chat = {}) {
+    const users = await findUsers({ _id: data.userIds }).select("fcmToken _id");
+    console.log(users);
+    users.forEach((e) => {
+      sendNotification({
+        title: data.title,
+        body: data.body,
+        fcmToken: e.fcmToken,
+        data: { chatId: data.chatId, userId: e._id },
+      });
+    });
   }
 }
 
@@ -1025,9 +1086,9 @@ function findUserpipeline(match) {
           {
             $match: {
               $expr: {
-                $in: ["$_id", "$$participantIds"]
-              }
-            }
+                $in: ["$_id", "$$participantIds"],
+              },
+            },
           },
           {
             $project: {
@@ -1035,11 +1096,11 @@ function findUserpipeline(match) {
               lastName: 1,
               email: 1,
               photo: 1,
-            }
-          }
+            },
+          },
         ],
-        as: "participantsData"
-      }
+        as: "participantsData",
+      },
     },
     {
       $addFields: {
@@ -1055,28 +1116,28 @@ function findUserpipeline(match) {
                     {
                       $filter: {
                         input: "$participantsData",
-                        cond: { $eq: ["$$this._id", "$$participant.userId"] }
-                      }
+                        cond: { $eq: ["$$this._id", "$$participant.userId"] },
+                      },
                     },
-                    0
-                  ]
-                }
-              ]
-            }
-          }
+                    0,
+                  ],
+                },
+              ],
+            },
+          },
         },
-      }
+      },
     },
     {
       $group: {
-        _id: '$_id',
-        chatType: { $first: '$chatType' },
-        groupName: { $first: '$groupName' },
-        groupImageUrl: { $first: '$groupImageUrl' },
+        _id: "$_id",
+        chatType: { $first: "$chatType" },
+        groupName: { $first: "$groupName" },
+        groupImageUrl: { $first: "$groupImageUrl" },
         // groupName: 1,
-        participants: { $first: '$participants' },
+        participants: { $first: "$participants" },
         // Add other fields you want to include
-      }
+      },
     },
     {
       $project: {
@@ -1093,6 +1154,6 @@ function findUserpipeline(match) {
         // unReadCount: 1,
       },
     },
-  ]
+  ];
 }
 module.exports = ChatRepository;

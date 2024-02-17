@@ -50,7 +50,7 @@ module.exports = (io) => {
     })
     socket.on('deleteSelectedMessages', async (data) => {
       console.log('deleteSelectedMessages executed')
-      await chatRepository.deleteSelectedMessage(data.chatId, data.userId)
+      await chatRepository.deleteSelectedMessage(data.chatId, data.userId,data.msgIds)
     })
     socket.on('readMessages', async (data) => {
       await chatRepository.readAllMessages(data.chatId, data.userId)
