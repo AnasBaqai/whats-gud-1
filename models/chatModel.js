@@ -24,7 +24,7 @@ const chatSchema = new Schema(
     },
     chatType: {
       type: String,
-      enum: ["one-to-one"],
+      enum: ["one-to-one", "group"],
       default: "one-to-one"
     },
     createdBy: {
