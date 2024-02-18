@@ -1,4 +1,8 @@
-const { createStream, getAllStreams } = require("../models/streamModel");
+const {
+  createStream,
+  getAllStreams,
+  findStreams,
+} = require("../models/streamModel");
 const { generateResponse } = require("../utils");
 const { STATUS_CODES } = require("../utils/constants");
 const { parseBody } = require("../utils");
@@ -7,6 +11,7 @@ const {
   getStreamKeysForChannel,
   getStreamKeyValue,
   getIngestEndpoint,
+  getViewerCount,
 } = require("../utils/awsStream");
 const { streamValidationSchema } = require("../validation/streamValidation");
 const {
@@ -14,7 +19,10 @@ const {
   findUserChannel,
 } = require("../models/userChannelModel");
 const { default: mongoose } = require("mongoose");
-const { getStreamersQuery } = require("./queries/streamQueries");
+const {
+  getStreamersQuery,
+  getAllStreamsQuery,
+} = require("./queries/streamQueries");
 
 exports.createStream = async (req, res, next) => {
   try {
@@ -65,7 +73,10 @@ exports.createStream = async (req, res, next) => {
     }
   } catch (error) {
     console.log(error.message);
-    return next({ status: STATUS_CODES.INTERNAL_SERVER_ERROR, message: "INTERNAL_SERVER_ERROR" });
+    return next({
+      status: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "INTERNAL_SERVER_ERROR",
+    });
   }
 };
 
@@ -86,6 +97,45 @@ exports.getStreamers = async (req, res, next) => {
     return generateResponse(streamers, "streamers fetched successfully", res);
   } catch (error) {
     console.log(error.message);
-    return next({ status: STATUS_CODES.INTERNAL_SERVER_ERROR, message: "INTERNAL_SERVER_ERROR" });
+    return next({
+      status: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
+// get streams which is live
+exports.getStreams = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const query = getAllStreamsQuery();
+
+    const streams = await getAllStreams({
+      query,
+      page,
+      limit,
+      responseKey: "streams",
+    });
+
+    // const dataWithViewerCount = await Promise.all(
+    //   streams.streams.map(async (stream) => {
+    //     const { channelArn, playBackUrl } = stream;
+
+    //     const viewerCount = await getViewerCount(channelArn);
+    //     return { ...stream, viewerCount };
+    //   })
+    // );
+    return generateResponse(
+      streams,
+      "streams fetched successfully",
+      res
+    );
+  } catch (error) {
+    console.log(error.message);
+    return next({
+      status: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "INTERNAL_SERVER_ERROR",
+    });
   }
 };

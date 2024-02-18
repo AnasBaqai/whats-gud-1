@@ -42,6 +42,7 @@ exports.updateProfileValidation = Joi.object({
     state: Joi.string().allow(null),
     country: Joi.string().allow(null),
   }).allow(null),
+  bio: Joi.string().allow(null),
 });
 
 exports.locationValidation = Joi.object({
