@@ -152,10 +152,16 @@ exports.loginUser = async (req, res, next) => {
     res.setHeader("authorization", token);
     //add the refresh token to the user
     user.refreshToken = refreshToken;
+    // const updatedUser = await updateUser(
+    //   { _id: user._id },
+    //   { refreshToken }
+    // ).exec();
     const updatedUser = await updateUser(
       { _id: user._id },
-      { refreshToken }
-    ).exec();
+      {
+        $set: { fcmToken: body.fcmToken, refreshToken },
+      }
+    );
     // Return the token and the user object
     return generateResponse(
       { accessToken: token, user: updatedUser },
@@ -173,7 +179,7 @@ exports.loginUser = async (req, res, next) => {
 };
 exports.registerUser = async (req, res, next) => {
   const body = parseBody(req.body);
-  const { email, password } = body // Directly destructure email and password
+  const { email, password,fcmToken } = body; // Directly destructure email and password
 
   // Joi validation
   const { error } = registerUserValidation.validate({ email, password });
@@ -197,7 +203,7 @@ exports.registerUser = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create a new user and save to the database
-    const newUser = await createUser({ email, password: hashedPassword });
+    const newUser = await createUser({ email, password: hashedPassword,fcmToken:fcmToken });
 
     // Generate tokens
     const refreshToken = generateRefreshToken(newUser);
@@ -210,9 +216,12 @@ exports.registerUser = async (req, res, next) => {
     res.setHeader("authorization", token);
 
     // Optionally, create relations asynchronously if it's not required to wait for its completion
-   await  createRelation({ user: newUser._id });
+    await createRelation({ user: newUser._id });
     const vericationUrl = `${process.env.BASE_URL}/api/auth/verify?userId=${newUser._id}`;
-    const message = 'Thank you for signing up, please verify your email by clicking the link below \n\n' + vericationUrl + '\n\n'
+    const message =
+      "Thank you for signing up, please verify your email by clicking the link below \n\n" +
+      vericationUrl +
+      "\n\n";
     await Mailer.sendEmail({
       email: newUser.email,
       subject: "email verification",
@@ -236,7 +245,7 @@ exports.registerUser = async (req, res, next) => {
 exports.verifyUser = async (req, res, next) => {
   try {
     const { userId } = req.query;
-    const user = await findUser({ _id: mongoose.Types.ObjectId( userId) });
+    const user = await findUser({ _id: mongoose.Types.ObjectId(userId) });
     if (!user) {
       return res.render("index", {
         mainMessage: "sorry",

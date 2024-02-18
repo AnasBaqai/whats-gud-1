@@ -15,6 +15,25 @@ const ivsClient = new IvsClient({
   },
 });
 
+
+exports.getViewerCount= async(channelArn) =>{
+  try {
+    const params = {
+      arn: channelArn,
+    };
+    const command = new GetChannelCommand(params);
+    const response = await ivsClient.send(command);
+    console.log(response)
+    const viewerCount = response.channel?.ingestEndpoint?.stats?.currentViewerCount || 0;
+    console.log("Viewer count:", viewerCount);
+    return viewerCount;
+  } catch (error) {
+    console.error("Error retrieving viewer count:", error);
+    throw error;
+  }
+}
+
+
 exports.getStreamKeysForChannel=async (channelArn)=> {
   const command = new ListStreamKeysCommand({ channelArn });
   try {
@@ -63,6 +82,9 @@ exports.createChannel = async (name) => {
   const command = new CreateChannelCommand({
     name,
     type: "STANDARD", // or "BASIC"
+    tags: {
+      CloudWatchMetricsEnabled: "true", // Tag to enable CloudWatch metrics
+    },
   });
 
   try {

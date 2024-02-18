@@ -35,6 +35,7 @@ exports.createProfile = async (req, res, next) => {
     preferredDJ,
     prefferedStreamers,
     address,
+    bio,
   } = body;
   const { error } = updateProfileValidation.validate(body);
   if (error) {
@@ -74,6 +75,7 @@ exports.createProfile = async (req, res, next) => {
       preferredDJ: preferredDJ || [],
       prefferedStreamers: prefferedStreamers || [],
       address: address || { city: null, state: null, country: null },
+      bio: bio || null,
     };
 
     const updatedUser = await updateUser({ _id: userId }, updateData).exec();
@@ -86,13 +88,13 @@ exports.createProfile = async (req, res, next) => {
     if (prefferedStreamers.length > 0) {
       await updateRelation(
         { user: userId },
-        { $push: { following: { $each: prefferedStreamers } } }
+        { $addToSet: { following: { $each: prefferedStreamers } } }
       );
     }
     if (preferredDJ.length > 0) {
       await updateRelation(
         { user: userId },
-        { $push: { following: { $each: preferredDJ } } }
+        { $addToSet: { following: { $each: preferredDJ } } }
       );
     }
     return generateResponse(updatedUser, "Profile created", res);
@@ -270,3 +272,22 @@ exports.updateProfile = async (req, res, next) => {
     });
   }
 };
+
+// update preferred events 
+
+exports.updatePreferredEvents = async (req, res, next) => {
+  try {
+    const { events } = req.body;
+    const userId = req.user.id;
+    const updatedUser = await updateUser(
+      { _id: mongoose.Types.ObjectId(userId) },
+      { preferredEvents: events }
+    );
+    return generateResponse(updatedUser, "Preferred events updated", res);
+  } catch (err) {
+    return next({
+      statusCode: STATUS_CODES.INTERNAL_SERVER_ERROR,
+      message: "internal server error",
+    });
+  }
+}

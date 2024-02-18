@@ -65,6 +65,8 @@ exports.createStream = (obj) => StreamModel.create(obj);
 
 exports.findStream = (query) => StreamModel.findOne(query);
 
+exports.findStreams = (query) => StreamModel.find(query);
+
 exports.getAllStreams = async ({ query, page, limit, responseKey = "data" }) => {
   const { data, pagination } = await getMongooseAggregatePaginatedData({
     model: StreamModel,
