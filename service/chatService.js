@@ -58,18 +58,18 @@ module.exports = (io) => {
     socket.on('updateBlockStatus', async (data) => {
       await chatRepository.updateBlockStatus(data)
     })
-    // socket.on('addParticipants', async (data) => {
-    //   await chatRepository.addParticipants(data.chatId, data.userId, data.participantIds)
-    // })
-    // socket.on('removeParticipants', async (data) => {
-    //   await chatRepository.removeParticipants(data.chatId,/*data.userId,*/data.participantIds)
-    // })
-    // socket.on('addAdmins', async (data) => {
-    //   await chatRepository.addAdmins(data.chatId, data.userId, data.adminIds)
-    // })
-    // socket.on('removeAdmins', async (data) => {
-    //   await chatRepository.removeAdmins(data.chatId, data.userId, data.adminIds)
-    // })
+    socket.on('addParticipants', async (data) => {
+      await chatRepository.addParticipants(data.chatId, data.userId, data.participantIds)
+    })
+    socket.on('removeParticipants', async (data) => {
+      await chatRepository.removeParticipants(data.chatId,/*data.userId,*/data.participantIds)
+    })
+    socket.on('addAdmins', async (data) => {
+      await chatRepository.addAdmins(data.chatId, data.userId, data.adminIds)
+    })
+    socket.on('removeAdmins', async (data) => {
+      await chatRepository.removeAdmins(data.chatId, data.userId, data.adminIds)
+    })
     socket.on('createChat', async (data) => {
       console.log(data)
       await chatRepository.createChat(data.userId, data.participantIds, data.chatType, data.groupName)
