@@ -18,9 +18,7 @@ const { ticketValidation } = require("../validation/ticketValidation");
 const { updateUser, findUser } = require("../models/userModel");
 const { getUserTicketsQuery } = require("./queries/ticketQueries");
 const { constants } = require("crypto");
-const stripe = require("stripe")(
-  "sk_test_51OUd7mHbqQR9UTxNCpWRsgtfoDlQSI5EFOm6vKrjz6F5rWb6y96zkpigrVK4ib1rHUQJz7lNUAhfNofL2zfuy8xb0095zYWfAX"
-);
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // exports.createNewTicket = async (req, res, next) => {
 //   const { eventId, price, quantity } = req.body;
@@ -66,21 +64,21 @@ const stripe = require("stripe")(
 //       }
 //       tickets.push(newTicket);
 //     }
-//     // const totalPrice = price * quantity;
+    // const totalPrice = price * quantity;
 
-//     //Create a payment intent with Stripe Connect transfer
-//     // const paymentIntent = await stripe.paymentIntents.create({
-//     //   amount: totalPrice * 100, // Stripe expects amount in cents
-//     //   currency: 'usd', // Set your currency
-//     //   payment_method: paymentMethodId,
-//     //   confirm: true, // Automatically confirm the payment
-//     //   transfer_data: {
-//     //     destination: eventCreatorStripeAccountId, // Event creator's connected Stripe account ID
-//     //   },
-//     //   // Optionally, add an application fee if you're taking a cut
-//     //   application_fee_amount: 0/* your application fee amount */,
-//     // });
-//     //console.log(paymentIntent);
+    //Create a payment intent with Stripe Connect transfer
+    // const paymentIntent = await stripe.paymentIntents.create({
+    //   amount: totalPrice * 100, // Stripe expects amount in cents
+    //   currency: 'usd', // Set your currency
+    //   payment_method: paymentMethodId,
+    //   confirm: true, // Automatically confirm the payment
+    //   transfer_data: {
+    //     destination: eventCreatorStripeAccountId, // Event creator's connected Stripe account ID
+    //   },
+    //   // Optionally, add an application fee if you're taking a cut
+    //   application_fee_amount: 0/* your application fee amount */,
+    // });
+    //console.log(paymentIntent);
 //     return generateResponse(tickets, "Tickets created successfully", res);
 //   } catch (error) {
 //     // Rollback in case of any error
@@ -252,8 +250,8 @@ exports.stripeOnBoarding = async (req, res, next) => {
     const account = await stripe.accounts.create({ type: "express" });
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: "http://localhost:5000/api/ticket/stripe/reauth",
-      return_url: `http://localhost:5000/api/ticket/stripe/onboarding-complete?stripeUserId=${account.id}&userId=${userId}`,
+      refresh_url: `${process.env.BASE_URL}/api/ticket/stripe/reauth`,
+      return_url: `${process.env.BASE_URL}/api/ticket/stripe/onboarding-complete?stripeUserId=${account.id}&userId=${userId}`,
       type: "account_onboarding",
     });
 
@@ -274,7 +272,7 @@ exports.stripeOnBoarding = async (req, res, next) => {
 // reauth function
 exports.reAuth = (req, res) => {
   // Redirect the user to the part of your app where they can restart the Stripe onboarding process
-  res.redirect("http://localhost:5000/api/ticket/stripe/onboarding");
+  res.redirect(`${process.env.BASE_URL}/api/ticket/stripe/onboarding`);
 };
 
 exports.onBoardingComplete = async (req, res) => {
@@ -294,7 +292,7 @@ exports.onBoardingComplete = async (req, res) => {
           stripeAccountId: stripeUserId,
         }
       );
-
+      console.log(updatedUser);
      res.render("index", {
         mainMessage: "Onboarding Process Completed",
         message: "Stripe account connected",

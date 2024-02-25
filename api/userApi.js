@@ -9,7 +9,8 @@ const {
   createAccessToken,
   searchUsers,
   updateProfile,
-  setUserAvatar
+  setUserAvatar,
+  updatePreferredEvents,
 } = require("../controller/userController");
 const auth = require("../middlewares/Auth");
 const { ROLES } = require("../utils/constants");
@@ -35,6 +36,11 @@ class userAPI {
     router.get("/lookup", auth([ROLES.USER, ROLES.ADMIN]), searchUsers);
     router.patch("/update", auth([ROLES.USER, ROLES.ADMIN]), updateProfile);
     router.post("/setAvatar", auth([ROLES.USER, ROLES.ADMIN]), setUserAvatar);
+    router.patch(
+      "/updatePreferredEvents",
+      auth([ROLES.USER, ROLES.ADMIN]),
+      updatePreferredEvents
+    );
   }
 
   getRouter() {

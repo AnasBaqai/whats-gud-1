@@ -1,3 +1,5 @@
+const { getViewerCount } = require("../../utils/awsStream");
+
 exports.getStreamersQuery = (currentUserId) => {
   return [
     {
@@ -53,3 +55,39 @@ exports.getStreamersQuery = (currentUserId) => {
     // Sorting stage can be added if needed
   ];
 };
+
+exports.getAllStreamsQuery = ()=>{
+  return[
+    {
+      $match: {
+        isLive: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "userchannels",
+        localField: "userId",
+        foreignField: "userId",
+        as: "channel",
+      },
+    },
+    {
+      $unwind: "$channel",
+    },
+    {
+      $project: {
+        _id: 0,
+        userId: 1,
+        category: 1,
+        streamName: 1,
+        streamDescription: 1,
+        streamAddress: 1,
+        location: 1,
+        playBackUrl: 1,
+        isLive: 1,
+        coverImage: 1,
+        channelArn: "$channel.channelUrl",
+      },
+    },
+  ];
+}
